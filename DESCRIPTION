@@ -1,0 +1,39 @@
+Package: halia
+Type: Package
+Title: Assess Size of the Mixing Zone Ellipse
+Version: 0.2.0
+Author: Tim Foster
+Maintainer: Tim Foster <tim.foster@sepa.org.uk>
+Description: The goal of aquaman is to assess the size of the mixing zone from
+ transect based ecology sampling.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Imports:
+  argosfilter,
+  cluster,
+  drc,
+  dplyr,
+  envalysis,
+  geosphere,
+  hexbin,
+  purrr,
+  sf,
+  sp,
+  raster,
+  rgdal,
+  rlang
+Remotes:
+  cran/argosfilter
+Depends: 
+    R (>= 3.60)
+RoxygenNote: 7.2.1
+Suggests: 
+    covr,
+    knitr,
+    magrittr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    tidyr
+Config/testthat/edition: 3
+VignetteBuilder: knitr

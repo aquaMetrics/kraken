@@ -1,0 +1,36 @@
+question -> assess -> action
+
+library(aquaman)
+
+app()
+
+
+test_iqi <- assess(demo_demo)
+
+  probs <- probability_non_linear(data)
+  overrides <- override(probs)
+  breachs <- breach(overrides)
+  areas <- area(breachs)
+
+test_family <- assess(demo_family)
+
+  taxa <- assign_taxa(path = demo_path()) # input is path to folder
+  taxa <-
+  data <- iqi() # IQI EQR?
+  probs <- probability_non_linear(data)
+  overrides <- override(probs)
+  breachs <- breach(overrides)
+  areas <- area(breachs)
+
+test_dna <- assess(demo_dna)
+
+
+
+questions(demo_iqi)
+date_taken, location_id, question, response
+12, "Bellister_1", easting, 122424
+12, rw3r3, northing, 12455
+12, rw3r3, IQI, 0.2
+12, rw3r3, station, 1
+12, rw3r3, transect, 1
+
