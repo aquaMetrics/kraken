@@ -10,21 +10,21 @@ test_that("probability_non_linear fuinction matches outputs from Spotfire script
   distance_to_good_test <- read.csv(
     system.file("extdat",
       "test-data/2021-05-26-bellister/distance-to-good-regression.csv",
-      package = "aquaman"
+      package = "halia"
     )
   )
 
   hex_test <- read.csv(
     system.file("extdat",
       "test-data/2021-05-26-bellister/hex.csv",
-      package = "aquaman"
+      package = "halia"
     )
   )
 
   best_fit_test <- read.csv(
     system.file("extdat",
       "test-data/2021-05-26-bellister/best-fit.csv",
-      package = "aquaman"
+      package = "halia"
     )
   )
 

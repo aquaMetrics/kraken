@@ -35,7 +35,7 @@ test_that("consecutive_stations calculates columns", {
   expected <- read.csv(
     system.file("extdat",
                 "test-data/2021-05-26-bellister/survey-iqi-data-gis.csv",
-                package = "aquaman"
+                package = "halia"
     ), check.names = FALSE
   )
   expected <- dplyr::select(expected, -MCFF_Transect_Station)

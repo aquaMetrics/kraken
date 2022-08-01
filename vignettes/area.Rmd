@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(aquaman)
+library(halia)
 library(magrittr)
 library(dplyr)
 ```

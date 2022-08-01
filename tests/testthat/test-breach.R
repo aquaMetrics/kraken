@@ -2,7 +2,7 @@ test_that("breach function matches spotfire script outputs", {
   data <- readRDS(
     system.file("extdat",
       "test-data/2021-05-26-bellister/test-probability.rds",
-      package = "aquaman"
+      package = "halia"
     )
   )
   breach <- breach(data)
@@ -12,7 +12,7 @@ test_that("breach function matches spotfire script outputs", {
   breach_positions_test <- read.csv(
     system.file("extdat",
       "test-data/2021-05-26-bellister/breach-positions.csv",
-      package = "aquaman"
+      package = "halia"
     )
   )
   breach_positions_test <- breach_positions_test[complete.cases(breach_positions_test), ]
@@ -20,7 +20,7 @@ test_that("breach function matches spotfire script outputs", {
   breach_best_fit_test <- read.csv(
     system.file("extdat",
       "test-data/2021-05-26-bellister/breach-best-fit.csv",
-      package = "aquaman"
+      package = "halia"
     )
   )
 
