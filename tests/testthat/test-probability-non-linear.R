@@ -33,6 +33,10 @@ test_that("probability_non_linear fuinction matches outputs from Spotfire script
   row.names(distance_to_good) <- NULL
   distance_to_good$Transect <- as.integer(distance_to_good$Transect)
   distance_to_good$Bearing <- as.numeric(distance_to_good$Bearing)
+  # Slight rounding differences on operating systems - bearing has no impact on
+  # calculation
+  distance_to_good_test$Bearing <- round(distance_to_good_test$Bearing, 2)
+  distance_to_good$Bearing <- round(distance_to_good$Bearing, 2)
   distance_to_good$Easting <- as.integer(distance_to_good$Easting)
   distance_to_good$Northing <- as.integer(distance_to_good$Northing)
   distance_to_good$D2G <- as.integer(distance_to_good$D2G)
@@ -44,6 +48,10 @@ test_that("probability_non_linear fuinction matches outputs from Spotfire script
   row.names(best_fit) <- NULL
   best_fit$Transect <- as.integer(best_fit$Transect)
   best_fit$Bearing <- as.numeric(best_fit$Bearing)
+  # Slight rounding differences on operating systems - bearing has no impact on
+  # calculation
+  best_fit$Bearing <- round(best_fit$Bearing, 2)
+  best_fit_test$Bearing <- round(best_fit_test$Bearing, 2)
   best_fit$Easting <- as.integer(best_fit$Easting)
   best_fit$Northing <- as.integer(best_fit$Northing)
   best_fit$D2G <- as.integer(best_fit$D2G)
