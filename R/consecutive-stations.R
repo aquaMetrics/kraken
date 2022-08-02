@@ -15,6 +15,7 @@
 #' stations <- consecutive_stations(demo_iqi)
 #' }
 consecutive_stations <- function(data) {
+
   # summaryOuput - Survey - Initial checks
   set.seed(123)
   stringsAsFactors <- FALSE
@@ -65,7 +66,6 @@ consecutive_stations <- function(data) {
       }
 
       # Convert E/N to Lat/Lon -------------------------------------------------
-      wgs84 <- "+init=epsg:4326"
       bng <- "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
       ConvertCoordinates <- function(easting, northing) {
         out <- cbind(easting, northing)
@@ -75,9 +75,9 @@ consecutive_stations <- function(data) {
             easting[mask],
             northing[mask]
           ),
-          proj4string = sp::CRS(bng)
+          proj4string = suppressWarnings(sp::CRS(bng))
           ),
-          sp::CRS(wgs84)
+          sp::CRS(SRS_string ="EPSG:4326")
         )
         out[mask, ] <- sp@coords
         out
@@ -161,7 +161,6 @@ consecutive_stations <- function(data) {
       if (is.na(row_index) == FALSE) {
         reducedSamplingD2G <- geoDf[row_index, 2]
       }
-      rm("r", "innerTransectDistance", "row_index", "s", "summed")
 
       # Have 2 consecutive Good stations been taken ----------------------------
       if (is.na(reducedSamplingD2G) == TRUE) {
@@ -241,6 +240,6 @@ consecutive_stations <- function(data) {
 
   data <- list(summaryOutput, testOutput)
   names(data) <- c("sample_point_checks", "survey_data")
-
   return(data)
+
 }

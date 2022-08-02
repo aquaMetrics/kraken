@@ -21,7 +21,6 @@
 #' probability <- probability_non_linear(data$survey_data)
 #' }
 probability_non_linear <- function(data) {
-
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
   #   2 Improved 2 station rule method
@@ -135,7 +134,7 @@ probability_non_linear <- function(data) {
 
     # 2 Build initial model ----------------------------------------------------
 
-    try(mL4 <- drm(IQI ~ Distance,
+    try(mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = innerTransect,
       fct = MM.3(),
       type = "continuous",
@@ -144,9 +143,8 @@ probability_non_linear <- function(data) {
         warnVal = -1,
         trace = FALSE,
         otrace = FALSE
-      )
-    ))
-    try(mL4 <- drm(IQI ~ Distance,
+      )))), silent = TRUE)
+    try(mL4 <-  suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = innerTransect,
       fct = L.4(),
       type = "continuous",
@@ -156,7 +154,7 @@ probability_non_linear <- function(data) {
         trace = FALSE,
         otrace = FALSE
       )
-    ))
+    ))), silent = TRUE)
     # Calculate Easting and Northing for re-use later
     easting_min <- unique(
       innerTransect$Easting[innerTransect$Distance ==
@@ -415,12 +413,12 @@ probability_non_linear <- function(data) {
       # 3 Do model comparison --------------------------------------------------
       # Check whether linear model may be better (informal lack-of-fit test)
       linCheck <- data.frame(
-        mselect(mL4,
+        suppressMessages(suppressWarnings(mselect(mL4,
           list(L.4()),
           sorted = "IC",
           linreg = TRUE,
           icfct = AIC
-        )
+        )))
       )
       linCheck$model <- row.names(linCheck)
       linCheck <- linCheck[linCheck$model != "Quad" &
@@ -432,7 +430,7 @@ probability_non_linear <- function(data) {
       }
 
       # Test alternative regression models:
-      modelComp <- data.frame(mselect(mL4,
+      modelComp <- data.frame(suppressMessages(suppressWarnings(mselect(mL4,
         list(
           L.4(),
           L.5(),
@@ -441,7 +439,7 @@ probability_non_linear <- function(data) {
         sorted = "IC",
         linreg = FALSE,
         icfct = AIC
-      )) # L,no LL,MM3,no MM2,no AR,no BC5
+      )))) # L,no LL,MM3,no MM2,no AR,no BC5
       modelComp <- data.frame(modelComp[, c(2, 4)])
       # Check if simpler model significantly different - if so simplify
       modParams <- data.frame(cbind(
@@ -595,7 +593,7 @@ probability_non_linear <- function(data) {
       bestModel <- modelList[paste(bestFit1[, 2])][[1]]
       # bestModel <- modelList[[grep(bestFit1[, 2], modelList)[1]]]
 
-      mL4 <- drm(IQI ~ Distance,
+      mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
         data = innerTransect,
         fct = bestModel,
         type = "continuous",
@@ -605,7 +603,7 @@ probability_non_linear <- function(data) {
           trace = FALSE,
           otrace = FALSE
         )
-      )
+      )))
       residsOut <- data.frame(mL4$predres)
 
       # Collate info on best fit
@@ -621,11 +619,11 @@ probability_non_linear <- function(data) {
         to = max(as.integer(innerTransect$Distance)),
         by = 1
       ))
-      ypred_mL4 <- predict(mL4,
+      ypred_mL4 <- suppressMessages(suppressWarnings(predict(mL4,
         newdata = distVec,
         level = 0.95,
         interval = "confidence"
-      )
+      )))
       bestFit <- cbind(distVec, ypred_mL4[, 1])
       names(bestFit) <- c("Distance", "IQI")
       bestFit$Transect <- i
@@ -663,7 +661,7 @@ probability_non_linear <- function(data) {
       xy <- 1
       while ((numberConverged < 500) & (xy <= length(bootDRCdata))) {
         mLBoot <- NULL
-        try(mLBoot <- drm(IQI ~ Distance,
+        try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
           data = as.data.frame(bootDRCdata[xy]),
           fct = bestModel,
           type = "continuous",
@@ -673,13 +671,16 @@ probability_non_linear <- function(data) {
             trace = FALSE,
             otrace = FALSE
           )
-        ))
+        ))), silent = TRUE)
         if (is.null(mLBoot) == FALSE) {
           convergedCount[xy] <- 1
           ypred_mLBoot[[xy]] <- data.frame(
             cbind(
               Distance = distVec,
-              IQI = predict(mLBoot, newdata = distVec, interval = "none")
+              IQI = suppressMessages(suppressWarnings(
+                predict(mLBoot,
+                        newdata = distVec,
+                        interval = "none")))
             )
           )
         } else {
@@ -767,8 +768,7 @@ probability_non_linear <- function(data) {
       if ((convergedPercent >= convergenceCriterion) &
         (dontAchieveGoodPercent <= PercDontReachGoodCriterion)) {
         hexdfOut <- rbind(hexdfOut, hexdf)
-        situation <- "sit4"
-        message("sit4")
+        # "sit4"
         summaryOutput <- rbind(
           summaryOutput,
           data.frame(cbind(
@@ -935,20 +935,6 @@ probability_non_linear <- function(data) {
         }
       }
     }
-    rm(list = setdiff(ls(), c(
-      "situation",
-      "residsOut",
-      "hexdfCheck",
-      "bootDRCdataUnlisted",
-      "D2Gdistr",
-      "D2GbestFitResults",
-      "summaryOutput",
-      "hexdfOut",
-      "data",
-      "combs",
-      "convergenceCriterion",
-      "PercDontReachGoodCriterion"
-    )))
   } # End of outer loop combs
 
   # Reset manual overrides
@@ -976,5 +962,6 @@ probability_non_linear <- function(data) {
     hexdfOut
   )
   names(data) <- c("data", "geoDf", "geoDfBestFit", "hexdfOut")
+
   return(data)
 }

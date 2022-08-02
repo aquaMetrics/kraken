@@ -83,7 +83,8 @@ area <- function(data) {
       ))
       if (numberOfBreachTransects >= 3) {
         actualEllipse_i <-
-          stats::predict(cluster::ellipsoidhull(breachPositions_i))
+          suppressWarnings(
+            stats::predict(cluster::ellipsoidhull(breachPositions_i)))
         actualEllipse_i <- as.data.frame(cbind(i, actualEllipse_i))
         names(actualEllipse_i) <- c("Run", "Longitude", "Latitude")
         # You need first to close your polygon
@@ -145,7 +146,7 @@ area <- function(data) {
     }
 
     actualEllipse_bestFit <- data.frame(stats::predict(
-      cluster::ellipsoidhull(breachPositions_bestFit)
+      suppressWarnings(cluster::ellipsoidhull(breachPositions_bestFit))
     ))
     names(actualEllipse_bestFit) <- c("Longitude", "Latitude")
 
