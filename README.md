@@ -12,15 +12,13 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 coverage](https://codecov.io/gh/aquaMetrics/kraken/branch/main/graph/badge.svg)](https://app.codecov.io/gh/aquaMetrics/kraken?branch=main)
 <!-- badges: end -->
 
-The goal of `kraken` R package is to calculate the mixing zone area,
-fulfilling these specific steps:
-
--   Assess the mixing zone area from IQI sampling results (DNA or
-    taxonomic).
+The goal of `kraken` [R](https://www.r-project.org/) package is to
+calculate the mixing zone area from IQI sampling results (DNA or
+taxonomic).
 
 This package is in an experimental phase. The core algorithm for
-calculating the area is unlikely to change, but the functions, and input
-and output data structures may change.
+calculating the area is unlikely to change, but the function names as
+well as the data formats and structures may change.
 
 ## Installation
 
@@ -66,4 +64,14 @@ overrides <- override(probs,
                       overrideBearing1 = -47)
 breachs <- breach(overrides)
 areas <- area(breachs)
+```
+
+## Help
+
+View documentation for each function in the usual way.
+
+``` r
+?assess
+?consecutive_stations
+# ...
 ```
