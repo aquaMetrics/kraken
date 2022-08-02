@@ -1,18 +1,18 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# halia
+# kraken
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/aquaMetrics/halia/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/aquaMetrics/halia/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/aquaMetrics/kraken/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/aquaMetrics/kraken/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![Codecov test
-coverage](https://codecov.io/gh/aquaMetrics/halia/branch/main/graph/badge.svg)](https://app.codecov.io/gh/aquaMetrics/halia?branch=main)
+coverage](https://codecov.io/gh/aquaMetrics/kraken/branch/main/graph/badge.svg)](https://app.codecov.io/gh/aquaMetrics/kraken?branch=main)
 <!-- badges: end -->
 
-The goal of `halia` R package is to calculate the mixing zone area,
+The goal of `kraken` R package is to calculate the mixing zone area,
 fulfilling these specific steps:
 
 -   Assess the mixing zone area from IQI sampling results (DNA or
@@ -24,11 +24,11 @@ and output data structures may change.
 
 ## Installation
 
-You can install the development version of `halia` like so:
+You can install the development version of `kraken` like so:
 
 ``` r
 install.packages("devtools")
-devtools::install_github("aquaMetrics/halia")
+devtools::install_github("aquaMetrics/kraken")
 ```
 
 ## Calculate Area
@@ -37,7 +37,7 @@ This example shows you how to calculate mixing zone from demo IQI input
 data:
 
 ``` r
-library(halia)
+library(kraken)
 ```
 
 ``` r

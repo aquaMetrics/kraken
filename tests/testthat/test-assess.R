@@ -2,7 +2,7 @@ test_that("test reintraid 2020 against reported results", {
   reintraid <- read.csv(
     system.file("extdat",
       "test-data/2022-reintraid.csv",
-      package = "halia"
+      package = "kraken"
     ),
     check.names = FALSE
   )
@@ -21,7 +21,7 @@ test_that("test tisti-geo 2021 against reported results", {
   tisti <- read.csv(
     system.file("extdat",
       "test-data/210706-teisti-geo.csv",
-      package = "halia"
+      package = "kraken"
     ),
     check.names = FALSE
   )

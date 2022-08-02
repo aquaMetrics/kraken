@@ -1,4 +1,4 @@
 library(testthat)
-library(halia)
+library(kraken)
 
-test_check("halia")
+test_check("kraken")

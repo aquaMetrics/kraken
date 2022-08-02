@@ -174,8 +174,8 @@ area <- function(data) {
   }
   names(fifthPercentileArea) <- NULL
   fifthPercentileArea <- list(fifthPercentileArea)
-  fifthPercentileArea[[2]] <- packageVersion("halia")[1]
-  fifthPercentileArea[[3]] <- packageDate("halia")[1]
+  fifthPercentileArea[[2]] <- packageVersion("kraken")[1]
+  fifthPercentileArea[[3]] <- packageDate("kraken")[1]
   names(fifthPercentileArea) <- c("5%", "package version", "package date")
   data <- list(ellipse, fifthPercentileArea, outDf)
   names(data) <- c("ellipse", "fifthPercentileArea", "spotfire_ellipse")

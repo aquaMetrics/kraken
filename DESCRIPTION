@@ -1,10 +1,14 @@
-Package: halia
+Package: kraken
 Type: Package
 Title: Assess Size of the Mixing Zone Ellipse
 Version: 0.2.0
-Author: Tim Foster
-Maintainer: Tim Foster <tim.foster@sepa.org.uk>
-Description: The goal of halia is to assess the size of the mixing zone from
+Authors@R: c(
+  person("Tim", "Foster", email = "tim.foster@sepa.org.uk",
+  role = c("ctb", "cre")),
+  person("Jack", "Bloodworth", role = "aut"),
+  person("Kieran", "Walesby", role = "aut"),
+  person("Scottish Environment Protection Agency", role = c("cph")))
+Description: The goal of kraken is to assess the size of the mixing zone from
  transect based ecology sampling.
 License: GPL (>= 3)
 Encoding: UTF-8
