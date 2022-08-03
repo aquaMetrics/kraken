@@ -68,6 +68,11 @@ areas <- area(breachs)
 Note, you can add manual override values for distance to good status or
 bearing for each transect using the `override` function.
 
+## Plot
+
+The ellipse area is one of the outputs from the `area()` function. An
+example of plotting the ellipse and survey data:
+
 ``` r
 library(sf)
 library(ggplot2)
