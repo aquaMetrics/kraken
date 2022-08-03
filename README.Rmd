@@ -87,17 +87,18 @@ g
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(sf)
 library(ggplot2)
-demo_ellipse <-   system.file("extdat",
-    "test-data/2021-05-26-bellister/shape/demo_ellipse.shp",
-    package = "kraken"
-  )
+demo_ellipse <- system.file("extdat",
+  "test-data/2021-05-26-bellister/shape/demo_ellipse.shp",
+  package = "kraken"
+)
 
 demo_ellipse <- sf::st_read(demo_ellipse, quiet = TRUE)
 data <- consecutive_stations(demo_iqi)
 data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
-g <- ggplot() + geom_sf(data = data, aes(color = `WFD status`)) + geom_sf(data = demo_ellipse, alpha = 0)
+g <- ggplot() +
+  geom_sf(data = data, aes(color = `WFD status`)) +
+  geom_sf(data = demo_ellipse, alpha = 0)
 g
-
 ```
 
 
