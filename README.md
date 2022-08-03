@@ -76,9 +76,10 @@ example of plotting the ellipse and survey data:
 ``` r
 library(sf)
 library(ggplot2)
-# convert survey data to spatial
+# Convert survey data to spatial
+data <- consecutive_stations(demo_iqi)
 data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
-# Calculate area with overrides
+# Calculate area without overrides
 data <- consecutive_stations(demo_iqi)
 probs <- probability_non_linear(data$survey_data)
 breachs <- breach(probs)
