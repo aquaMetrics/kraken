@@ -52,9 +52,8 @@ area
 #> [1] "2022-07-27"
 ```
 
-Alternatively, it is possible to to see outputs from each step in the
-process. As well as add manual overrides for distance to good status or
-bearing for each transect:
+Alternatively, use lower-level functions to step through each part of
+the process:
 
 ``` r
 data <- consecutive_stations(demo_iqi)
@@ -65,6 +64,22 @@ overrides <- override(probs,
 breachs <- breach(overrides)
 areas <- area(breachs)
 ```
+
+Note, you can add manual override values for distance to good status or
+bearing for each transect using the `override` function.
+
+``` r
+library(sf)
+library(ggplot2)
+# convert survey data to spatial
+data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
+ellipse <- areas$ellipse
+g <- ggplot() + geom_sf(data = data, aes(color = IQI)) + 
+                geom_sf(data = ellipse, alpha = 0)
+g
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 ## Help
 

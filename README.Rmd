@@ -59,9 +59,8 @@ area
 #> [1] "2022-07-27"
 ```
 
-Alternatively, it is possible to to see outputs from each step in the process.
-As well as add manual overrides for distance to good status or bearing for each
-transect:
+Alternatively, use lower-level functions to step through each part of the
+process:
 ```r
 data <- consecutive_stations(demo_iqi)
 probs <- probability_non_linear(data$survey_data)
@@ -72,6 +71,36 @@ breachs <- breach(overrides)
 areas <- area(breachs)
 ```
 
+Note, you can add manual override values for distance to good status or bearing for
+each transect using the `override` function.
+
+```r
+library(sf)
+library(ggplot2)
+# convert survey data to spatial
+data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
+ellipse <- areas$ellipse
+g <- ggplot() + geom_sf(data = data, aes(color = IQI)) + 
+                geom_sf(data = ellipse, alpha = 0)
+g
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(sf)
+library(ggplot2)
+demo_ellipse <-   system.file("extdat",
+    "test-data/2021-05-26-bellister/shape/demo_ellipse.shp",
+    package = "kraken"
+  )
+
+demo_ellipse <- sf::st_read(demo_ellipse, quiet = TRUE)
+data <- consecutive_stations(demo_iqi)
+data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
+g <- ggplot() + geom_sf(data = data, aes(color = `WFD status`)) + geom_sf(data = demo_ellipse, alpha = 0)
+g
+
+```
+
+
 ## Help
 
 View documentation for each function in the usual way.
@@ -81,5 +110,3 @@ View documentation for each function in the usual way.
 ?consecutive_stations
 # ...
 ```
-
-
