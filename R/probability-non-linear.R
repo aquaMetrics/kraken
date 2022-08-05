@@ -659,6 +659,9 @@ probability_non_linear <- function(data) {
       )
       numberConverged <- 0
       xy <- 1
+      if(i == "Bellister - 1") {
+      browser()
+      }
       while ((numberConverged < 500) & (xy <= length(bootDRCdata))) {
         mLBoot <- NULL
         try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
