@@ -2,12 +2,21 @@
 #'
 #' Calculate the ellipse mixing area distribution and create a ellipse polygon.
 #'
-#' @param data named list of 3 data frames from `breach` function:
+#' @param data named list of 3 data frames output from the `breach()` function:
 #'   `surveyData`, `breachPositionEnsemble` and `breachPositionBestFit`.
-#' @return Named list of objects: `ellipse` (sf object of the area of ellipse),
-#'   `fifthPercentileArea` named list containing numeric value in metres of 5%
-#'   percentile area, package version and date and `spotfire_ellipse` (TIBCO
-#'   Spotfire compatible geometry of ellipse).
+#' @return Named list of 7 objects:
+#' \describe{
+#' \item{ellipse}{sf object of the ellipse area}
+#' \item{fifthPercentileArea}{Named list containing numeric value in metres of
+#' 5th percentile area, package version and date}
+#' \item{spotfire_ellipse}{TIBCO Spotfire compatible geometry of ellipse}
+#' \item{ellipseResult}{Ellipse result either Dummy or Actual Ellipse}
+#' \item{ellipseArea}{Area distributions}
+#' \item{warning1}{Warning if distance to good has been established for all
+#' transects}
+#' \item{warning2}{Warning if insufficient transect have reached good status to
+#' constrain ellipse}
+#' }
 #' @export
 #' @importFrom purrr map_df
 #' @importFrom utils packageDate packageVersion
@@ -46,8 +55,8 @@ area <- function(data) {
   fifthPercentileArea <- 0
 
   if (is.null(breachPositionEnsemble) ||
-    nrow(breachPositionEnsemble) == 0 ||
-    sum(!is.na(breachPositionBestFit$breachDistance)) < 3) {
+      nrow(breachPositionEnsemble) == 0 ||
+      sum(!is.na(breachPositionBestFit$breachDistance)) < 3) {
     ellipseArea <- data.frame(Area = NULL)
     outDf <- data.frame(outDf = NULL)
     ellipseResult <- "Dummy ellipse"
@@ -101,13 +110,13 @@ area <- function(data) {
         ellipseArea <- rbind(ellipseArea, ellipseArea_i)
         fifthPercentileAreaDynamic[i] <-
           stats::quantile(as.vector(ellipseArea$Area),
-            probs = c(.05)
+                          probs = c(.05)
           )
       }
     }
 
     fifthPercentileArea <- stats::quantile(as.vector(ellipseArea$Area),
-      probs = c(.05)
+                                           probs = c(.05)
     )
     newOuterGeometry <- function(inputDf) {
 
@@ -131,7 +140,7 @@ area <- function(data) {
     } ## end of new outer geometry
 
     if ((numberOfBreachTransects >= 3) &
-      (numberOfBreachTransects <- totalNumberOfTransects)) {
+        (numberOfBreachTransects <- totalNumberOfTransects)) {
       breachPositions_bestFit <- (as.matrix(cbind(
         Longitude = breachPositionBestFit$breachLongitude,
         Latitude = breachPositionBestFit$breachLatitude
@@ -178,7 +187,20 @@ area <- function(data) {
   fifthPercentileArea[[2]] <- packageVersion("kraken")[1]
   fifthPercentileArea[[3]] <- packageDate("kraken")[1]
   names(fifthPercentileArea) <- c("5%", "package version", "package date")
-  data <- list(ellipse, fifthPercentileArea, outDf)
-  names(data) <- c("ellipse", "fifthPercentileArea", "spotfire_ellipse")
+  data <- list(ellipse,
+               fifthPercentileArea,
+               outDf,
+               ellipseArea,
+               ellipseResult,
+               warning1,
+               warning2)
+  names(data) <- c("ellipse",
+                   "fifthPercentileArea",
+                   "spotfire_ellipse",
+                   "ellipseArea",
+                   "ellipseResult",
+                   "warning1",
+                   "warning2")
   return(data)
 }
+
