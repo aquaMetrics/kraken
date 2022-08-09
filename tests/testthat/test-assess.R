@@ -34,6 +34,8 @@ test_that("test tisti-geo 2021 against reported results", {
   # Running with 6 stations returns reported value (in this case area at least
   # 148362 +). In this case, makes no difference on outcome of compliance.
   tisti <- tisti[-19, ] # remove station 7 from Transect 3
-  area <- assess(tisti, overrideTransect1 = 392)
+  old_area <- assess(tisti, loess = FALSE)
+  old_area <- assess(demo_iqi, loess = FALSE)
+  area <- assess(demo_iqi, loess = TRUE)
   testthat::expect_equal(round(area[[1]], 0), 148362)
 })

@@ -1,4 +1,9 @@
 
+# library(purrr)
+# library(dplyr)
+# library(furrr)
+# library(drc)
+
 
 loop_model <- function(bootstraps = NULL, numberConverged = 0, xy = 1, distVec = NULL) {
   convergedCount <- rep(0, length(bootstraps))
@@ -56,13 +61,13 @@ loop_model <- function(bootstraps = NULL, numberConverged = 0, xy = 1, distVec =
 # end_time - start_time
 
 
-plan(multisession, workers = 4)
+# plan(multisession, workers = 4)
 
 new_loop_model <- function(bootstraps = NULL, distance_vector = NULL) {
-  models <- purrr::map(bootstraps[1:5], function(bootstrap) {
-     browser()
-    model <- drm(IQI ~ Distance,
-      data = bootstrap[1, ],
+  models <- purrr::map_df(bootstraps, function(bootstrap) {
+     # browser()
+     model <- drm(IQI ~ Distance,
+      data = bootstrap,
       fct = bestModel,
       type = "continuous",
       control = drmc(
@@ -74,12 +79,50 @@ new_loop_model <- function(bootstraps = NULL, distance_vector = NULL) {
       )
     )
 
-    data <- predict(model, newdata = distance_vector, interval = "none")
+    # model <- loess(IQI ~ Distance,
+    #                data = data$survey_data
+    #
+    # )
 
+    data <- predict(model, newdata = distance_vector, interval = "none")
+    data <- data.frame("iqi" = data)
     return(data)
   })
 }
 
+
+# model <- drm(IQI ~ Distance,
+#              data = data$survey_data,
+#              fct = bestModel,
+#              type = "continuous",
+#              control = drmc(
+#                errorm = FALSE,
+#                noMessage = TRUE,
+#                warnVal = -1,
+#                trace = FALSE,
+#                otrace = FALSE
+#              )
+# )
+
+#  survey_data <- data$survey_data
+#  distance <- data.frame("Distance" = 1:293)
+# prediction <- predict(model, distance)
+#
+#
+# data <- data.frame("IQI" = c(0.4,0.59, 0.61, 0.56, 0.56, 0.53, 0.67, 0.68, 0.67),
+#                    "Distance" = c(0,27.03,51.76, 60.85, 71.73, 127.48, 208.56, 278.09, 293.71))
+# model <- drc::drm(IQI ~ Distance,
+#              data = data,  fct = MM.3(),  type = "continuous",
+#              control = drmc(
+#                               errorm = FALSE,
+#                               noMessage = TRUE,
+#                               warnVal = -1,
+#                               trace = FALSE,
+#                               otrace = FALSE
+#                             )
+#                )
+# distance <- 1:294
+# prediction_loess <- predict(model, data.frame(distance))
 #
 # start_time <- Sys.time()
 # result_new <- new_loop_model(bootstraps = bootDRCdata_1,

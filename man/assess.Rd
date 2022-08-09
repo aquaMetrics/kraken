@@ -13,7 +13,8 @@ assess(
   overrideBearing1 = NA,
   overrideBearing2 = NA,
   overrideBearing3 = NA,
-  overrideBearing4 = NA
+  overrideBearing4 = NA,
+  loess = FALSE
 )
 }
 \arguments{

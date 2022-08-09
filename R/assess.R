@@ -40,9 +40,10 @@ assess <- function(data,
                    overrideBearing1 = NA,
                    overrideBearing2 = NA,
                    overrideBearing3 = NA,
-                   overrideBearing4 = NA) {
+                   overrideBearing4 = NA,
+                   loess = FALSE) {
   data <- consecutive_stations(data)
-  probs <- probability_non_linear(data$survey_data)
+  probs <- probability_non_linear(data$survey_data, loess = loess)
   overrides <- override(
     probs,
     overrideTransect1,

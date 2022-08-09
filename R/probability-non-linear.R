@@ -5,7 +5,7 @@
 #' high status) station is used.
 #'
 #' @param data The named data frame `survey_data` from `consecutive_station()` function. See examples.
-#'
+#' @param loess Use loess model (instead of best fit model).
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
 #'   hexdfOut.
 #' @export
@@ -20,7 +20,7 @@
 #' data <- consecutive_stations(data)
 #' probability <- probability_non_linear(data$survey_data)
 #' }
-probability_non_linear <- function(data) {
+probability_non_linear <- function(data, loess = FALSE) {
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
   #   2 Improved 2 station rule method
@@ -143,8 +143,9 @@ probability_non_linear <- function(data) {
         warnVal = -1,
         trace = FALSE,
         otrace = FALSE
-      )))), silent = TRUE)
-    try(mL4 <-  suppressMessages(suppressWarnings(drm(IQI ~ Distance,
+      )
+    ))), silent = TRUE)
+    try(mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = innerTransect,
       fct = L.4(),
       type = "continuous",
@@ -590,6 +591,7 @@ probability_non_linear <- function(data) {
         "MM.2",
         "MM.3"
       ) # Change
+
       bestModel <- modelList[paste(bestFit1[, 2])][[1]]
       # bestModel <- modelList[[grep(bestFit1[, 2], modelList)[1]]]
 
@@ -659,22 +661,29 @@ probability_non_linear <- function(data) {
       )
       numberConverged <- 0
       xy <- 1
-      if(i == "Bellister - 1") {
-      browser()
-      }
+      # if (i == "Bellister - 1") {
+      #   browser()
+      # }
       while ((numberConverged < 500) & (xy <= length(bootDRCdata))) {
         mLBoot <- NULL
-        try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
-          data = as.data.frame(bootDRCdata[xy]),
-          fct = bestModel,
-          type = "continuous",
-          control = drmc(
-            noMessage = TRUE,
-            warnVal = -1,
-            trace = FALSE,
-            otrace = FALSE
-          )
-        ))), silent = TRUE)
+        if (loess == FALSE) {
+          try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
+            data = as.data.frame(bootDRCdata[xy]),
+            fct = bestModel,
+            type = "continuous",
+            control = drmc(
+              noMessage = TRUE,
+              warnVal = -1,
+              trace = FALSE,
+              otrace = FALSE
+            )
+          ))), silent = TRUE)
+        } else {
+          try(mLBoot <- suppressMessages(suppressWarnings(loess(IQI ~ Distance,
+            data = as.data.frame(bootDRCdata[xy])
+          ))), silent = TRUE)
+        }
+
         if (is.null(mLBoot) == FALSE) {
           convergedCount[xy] <- 1
           ypred_mLBoot[[xy]] <- data.frame(
@@ -682,8 +691,10 @@ probability_non_linear <- function(data) {
               Distance = distVec,
               IQI = suppressMessages(suppressWarnings(
                 predict(mLBoot,
-                        newdata = distVec,
-                        interval = "none")))
+                  newdata = distVec,
+                  interval = "none"
+                )
+              ))
             )
           )
         } else {
@@ -692,6 +703,7 @@ probability_non_linear <- function(data) {
         numberConverged <- sum(convergedCount)
         xy <- xy + 1
       }
+      browser()
       convergedPercent <- round(100 * sum(convergedCount) /
         (sum(convergedCount) + sum(nonConvergedCount)), 1)
       bootDRCmods <- ypred_mLBoot[-which(sapply(ypred_mLBoot, is.null))]
