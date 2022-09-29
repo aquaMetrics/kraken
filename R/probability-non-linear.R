@@ -703,7 +703,7 @@ probability_non_linear <- function(data, loess = FALSE) {
         numberConverged <- sum(convergedCount)
         xy <- xy + 1
       }
-      browser()
+
       convergedPercent <- round(100 * sum(convergedCount) /
         (sum(convergedCount) + sum(nonConvergedCount)), 1)
       bootDRCmods <- ypred_mLBoot[-which(sapply(ypred_mLBoot, is.null))]

@@ -6,10 +6,13 @@
 #'   `surveyData`, `breachPositionEnsemble` and `breachPositionBestFit`.
 #' @return Named list of objects: `ellipse` (sf object of the area of ellipse),
 #'   `fifthPercentileArea` named list containing numeric value in metres of 5%
-#'   percentile area, package version and date and `spotfire_ellipse` (TIBCO
-#'   Spotfire compatible geometry of ellipse).
+#'   percentile area, package version and date, `spotfire_ellipse` (TIBCO
+#'   Spotfire compatible geometry of ellipse), and `polygon` is an sf object
+#'   connecting distance to good points with straight lines (not ellipse).
 #' @export
 #' @importFrom purrr map_df
+#' @importFrom sf st_polygon st_sf st_sfc st_area
+#' @importFrom dplyr select bind_rows
 #' @importFrom utils packageDate packageVersion
 #' @examples
 #' \dontrun{
@@ -84,19 +87,20 @@ area <- function(data) {
       if (numberOfBreachTransects >= 3) {
         actualEllipse_i <-
           suppressWarnings(
-            stats::predict(cluster::ellipsoidhull(breachPositions_i)))
+            stats::predict(cluster::ellipsoidhull(breachPositions_i))
+          )
         actualEllipse_i <- as.data.frame(cbind(i, actualEllipse_i))
         names(actualEllipse_i) <- c("Run", "Longitude", "Latitude")
         # You need first to close your polygon
         actualEllipse_i <- dplyr::distinct(actualEllipse_i[, 2:3])
         actualEllipse_i <- rbind(actualEllipse_i[, ], actualEllipse_i[1, ])
-        ellipseAsPolygon_i <- sf::st_sf(
-          sf::st_sfc(sf::st_polygon(list(as.matrix(actualEllipse_i)))),
+        ellipseAsPolygon_i <- st_sf(
+          st_sfc(st_polygon(list(as.matrix(actualEllipse_i)))),
           crs = 4326
         )
         # Calculate area
         ellipseArea_i <- data.frame(
-          Area = as.numeric(sf::st_area(ellipseAsPolygon_i))
+          Area = as.numeric(st_area(ellipseAsPolygon_i))
         )
         ellipseArea <- rbind(ellipseArea, ellipseArea_i)
         fifthPercentileAreaDynamic[i] <-
@@ -148,6 +152,13 @@ area <- function(data) {
     actualEllipse_bestFit <- data.frame(stats::predict(
       suppressWarnings(cluster::ellipsoidhull(breachPositions_bestFit))
     ))
+
+    polygon <- select(breachPositionBestFit, breachLongitude, breachLatitude)
+    polygon <- bind_rows(polygon, polygon[1, ])
+    polygon <- st_polygon(list(as.matrix(polygon)))
+    polygon <- st_sfc(polygon, crs = 4326)
+    polygon <- st_sf(polygon)
+
     names(actualEllipse_bestFit) <- c("Longitude", "Latitude")
 
     # You need first to close your polygon
@@ -166,9 +177,9 @@ area <- function(data) {
         `MapChart.ColumnTypeId` = "Geometry"
       )
 
-    ellipse <- sf::st_sf(
-      sf::st_sfc(
-        sf::st_polygon(list(as.matrix(actualEllipse_bestFit)))
+    ellipse <- st_sf(
+      st_sfc(
+        st_polygon(list(as.matrix(actualEllipse_bestFit)))
       ),
       crs = 4326
     )
@@ -178,7 +189,7 @@ area <- function(data) {
   fifthPercentileArea[[2]] <- packageVersion("kraken")[1]
   fifthPercentileArea[[3]] <- packageDate("kraken")[1]
   names(fifthPercentileArea) <- c("5%", "package version", "package date")
-  data <- list(ellipse, fifthPercentileArea, outDf)
-  names(data) <- c("ellipse", "fifthPercentileArea", "spotfire_ellipse")
+  data <- list(ellipse, fifthPercentileArea, outDf, polygon)
+  names(data) <- c("ellipse", "fifthPercentileArea", "spotfire_ellipse", "polygon")
   return(data)
 }

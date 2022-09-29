@@ -34,9 +34,11 @@ Depends:
 RoxygenNote: 7.2.1
 Suggests: 
     covr,
+    forcats,
     ggplot2,
     knitr,
     magrittr,
+    RColorBrewer,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyr

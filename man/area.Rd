@@ -13,8 +13,9 @@ area(data)
 \value{
 Named list of objects: `ellipse` (sf object of the area of ellipse),
   `fifthPercentileArea` named list containing numeric value in metres of 5%
-  percentile area, package version and date and `spotfire_ellipse` (TIBCO
-  Spotfire compatible geometry of ellipse).
+  percentile area, package version and date, `spotfire_ellipse` (TIBCO
+  Spotfire compatible geometry of ellipse), and `polygon` is an sf object
+  connecting distance to good points with straight lines (not ellipse).
 }
 \description{
 Calculate the ellipse mixing area distribution and create a ellipse polygon.
