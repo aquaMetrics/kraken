@@ -1,0 +1,246 @@
+---
+title: "Redesign"
+output: html_document
+date: "2022-09-29"
+---
+
+```{r setup, include=FALSE}
+library(kraken)
+library(aquaman)
+library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Standardise Data
+
+### Import Survey Details Template
+
+```{r}
+file <- system.file("extdat",
+  "survey-template/220421-SelfMon-N4952-CAV1-Enhanced.xlsx",
+  package =
+    "aquaman"
+)
+survey <- survey_import(file)
+
+survey_data <- survey %>%
+  filter(question %in% c("IQI", "Easting", "Northing", "Date sampled (dd/mm/yy)")) %>%
+  mutate(
+    location_id = sample_id,
+    sample_id = paste0(sample_id, project_id)
+  )
+
+date <- survey_data %>%
+  filter(question == "Date sampled (dd/mm/yy)") %>%
+  select(sample_id, "date_taken" = response)
+
+survey_data <- inner_join(survey_data, date, by = "sample_id")
+survey_data <- survey_data %>% filter(question != "Date sampled (dd/mm/yy)")
+```
+
+### Import Access Database
+
+```{r}
+file <- system.file("extdat",
+  "test-data/harris-iqi-data.csv",
+  package = "kraken"
+)
+
+access_data <- readr::read_csv(file, show_col_types = FALSE)
+
+access_data <- access_data %>%
+  mutate(
+    sample_id = paste0(Transect, Station, MCFF),
+    project_id = paste0(MCFF, Survey_date),
+    location_id = paste0(Transect, Station)
+  ) %>%
+  select(
+    -Footprint,
+    -Permit,
+    -site_name_survey_id,
+    -Site_Name,
+    -Site_ID,
+    -MCFF,
+    -Survey_ID,
+    -Transect,
+    -Station
+  ) %>%
+  pivot_longer(
+    cols = c(
+      -sample_id,
+      -Survey_date,
+      -project_id,
+      -location_id
+    ),
+    names_to = "question",
+    values_to = "response"
+  ) %>%
+  select(location_id,
+    project_id,
+    sample_id,
+    "date_taken" = Survey_date,
+    question,
+    response
+  ) %>%
+  mutate(response = as.character(response))
+```
+
+Combine Data
+
+For instance, take data from Access database, survey details template, Ecology
+recovered data or EA web services.
+This all becomes One Big Table (OBT)! All data is the same, columns are the
+same, data types are the same, it's boring, boring, boring.
+
+```{r}
+
+data <- bind_rows(access_data, survey_data)
+```
+
+
+## Validation
+
+Data validation...
+Transect level:
+1. Number of stations
+2. No. of transects
+3. Reaching good status
+4. Warnings: Proxy transects
+5. Warnings: Type of proxy transects
+6. Warnings: Pen groupings
+7. 150-200m third...??
+
+
+
+```{r}
+valid <- function(data) {
+  
+  #...
+  # map_df(split(transect), function() {
+  #   
+  #   
+  #   
+  # })
+  # number_of_stations <- tibble(
+  #   question =  "Number of stations",
+  #   response = ""
+  # )
+  # 
+  # 
+  # bind_rows(data, validation)
+  return(data)
+}
+
+valid_data <- valid(data)
+```
+
+
+## WFD Status
+
+Need a generic function for assigning WFD status to ratio or observation...luckily we already programmed one.
+
+```{r}
+
+wfd_status <- function(data, question) {
+  eqr <- data$response[data$question ==
+    question]
+  eqr <- eqr[!is.na(eqr)]
+  eqr <- as.numeric(eqr)
+  ## Copy from RICT??...
+  status <- rict::compare_probability(
+    a = eqr,
+    b = eqr,
+    eqr_bands =
+      c(
+        0,
+        0.47,
+        0.56,
+        0.64,
+        0.8,
+        1
+      )
+  )
+
+  status <- status[, 1]
+  data$status <- status
+  return(data)
+}
+
+wfd_data <- wfd_status(data,
+  question = "IQI"
+)
+```
+
+## GIS Attributes
+
+Add GIS attributes
+
+```{r}
+
+gis_attributes <- function(data) {
+   bng <- sf::st_crs(
+     "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
+     )
+   sp <- sf::st_point(list(
+            easting[mask],
+            northing[mask]
+          ))
+        sp <- st_as_sfc(sp, crs = bng)
+        sp <- sf::st_transform(sp::CRS(SRS_string ="EPSG:4326"))
+  return(data)
+}
+
+gis_data <- gis_attributes(wfd_data)
+```
+
+## Distance to Good
+
+```{r}
+distance <- function(data) {
+  return(data)
+}
+
+distance_data <- distance(gis_data)
+```
+
+## Area
+
+```{r}
+area <- function(data) {
+  return(data)
+}
+area_data <- distance(distance_data)
+```
+
+## Overall Calculation
+
+Wrap all the sub functions into an overall `kraken()` function.
+
+```{r}
+# `question` - What is be categorized e.g. IQI, emermectin, phosphorus, diatoms...
+kraken <- function(data, question, eqr_bands) {
+  wfd <- wfd_status(
+    data,
+    question,
+    eqr_bands
+  )
+  gis <- gis_attributes(wfd)
+  distance <- distance(gis)
+  area <- area(distance)
+
+  return(area)
+}
+
+
+output <- kraken(data,
+  question = "IQI",
+  eqr_bands = c(
+    0,
+    0.24,
+    0.44,
+    0.64,
+    0.75,
+    1
+  )
+)
+```

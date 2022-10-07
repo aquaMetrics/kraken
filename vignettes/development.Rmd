@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   error = FALSE,
-  fig.width = 6.25
+  fig.width = 5
 )
 ```
 
@@ -38,10 +38,27 @@ Below is a summary of long-term and short-term development ideas to make running
 
 ```{r}
 
-data <- read.csv(system.file("extdat", "test-data/harris-iqi-data.csv" ,
-                      package = "kraken"), check.names = FALSE)
+data <- read.csv(system.file("extdat", "test-data/harris-iqi-data.csv",
+  package = "kraken"
+), check.names = FALSE)
 
 
+pens <- read.csv(system.file("extdat", "test-data/harris-pen-layout.csv",
+  package = "kraken"
+), check.names = FALSE)
+
+pens <- filter(pens, Type == "square")
+bng <- sf::st_crs(
+  "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
+)
+
+points <- st_as_sf(x = pens, 
+                   coords = c("Easting", "Northing"),
+                   crs = bng)
+
+
+points <- sf::st_transform(points,
+  crs = "EPSG:4326")
 
 data <- consecutive_stations(data)
 probs <- probability_non_linear(data$survey_data, loess = TRUE)
@@ -55,38 +72,46 @@ data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 43
 ellipse <- areas$ellipse
 polygon <- areas$polygon
 myColors <- c(
-   '#d7191c',
-   '#fdae61',
-   "#fecc5c",
-   '#abdda4',
-   '#2b83ba'
+  "#d7191c",
+  "#fdae61",
+  "#fecc5c",
+  "#abdda4",
+  "#2b83ba"
 )
 data$`WFD status` <- as.factor(data$`WFD status`)
 data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   "Bad",
-   "Poor",
-   "Moderate",
+  "Poor",
+  "Moderate",
   "Good",
   "High"
 )
 blue_theme <- theme(
-  panel.background = element_rect(fill = "#BFD5E3", colour = "#6D9EC1",
-                                size = 2, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                colour = "white"), 
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                colour = "white")
+  panel.background = element_rect(
+    fill = "#BFD5E3", colour = "#6D9EC1",
+    size = 2, linetype = "solid"
+  ),
+  panel.grid.major = element_line(
+    size = 0.5, linetype = "solid",
+    colour = "white"
+  ),
+  panel.grid.minor = element_line(
+    size = 0.25, linetype = "solid",
+    colour = "white"
   )
+)
 
 names(myColors) <- levels(data$`WFD status`)
 colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  geom_sf(data = polygon, alpha = 0, colour = "purple")  +
-  colScale + blue_theme
-g
+  geom_sf(data = polygon, alpha = 0, colour = "purple") +
+  geom_sf(data = points, colour = "black") +
+  colScale +
+  blue_theme
+g 
 
 ```
 
@@ -95,10 +120,104 @@ g
 ```{r}
 
 print(paste("Ellipse:", round(st_area(ellipse))))
-  
+
 print(paste("Polygon: ", round(st_area(polygon))))
+```
+
+### ❌ Pen groups
+
+Currently, we can't automatically deal with separate calculations for pen groups. The above six transect survey would better be calculated as two separate pen groups/ellipses and the two areas merged.
+
+```{r, message=FALSE, warning=FALSE}
+
+
+transects_pen_1 <- filter(data, Transect %in% c(6,1,2))
+transects_pen_2 <- filter(data, Transect %in% c(4,5,3))
+
+pen_1 <- consecutive_stations(transects_pen_1)
+probs_1 <- suppressWarnings( probability_non_linear(pen_1$survey_data, loess = TRUE))
+breach_1 <- breach(probs_1)
+area_1 <- kraken::area(breach_1)
+
+pen_2 <- consecutive_stations(transects_pen_2)
+probs_2 <- suppressWarnings(probability_non_linear(pen_2$survey_data, loess = TRUE))
+breach_2 <- breach(probs_2)
+area_2 <- kraken::area(breach_2)
+
+myColors <- c(
+  "#d7191c",
+  "#fdae61",
+  "#fecc5c",
+  "#abdda4",
+  "#2b83ba"
+)
+transects_pen_1$`WFD status` <- as.factor(transects_pen_1$`WFD status`)
+transects_pen_1$`WFD status` <- fct_relevel(
+  transects_pen_1$`WFD status`,
+  "Bad",
+  "Poor",
+  "Moderate",
+  "Good",
+  "High"
+)
+
+transects_pen_2$`WFD status` <- as.factor(transects_pen_2$`WFD status`)
+transects_pen_2$`WFD status` <- fct_relevel(
+  transects_pen_2$`WFD status`,
+  "Bad",
+  "Poor",
+  "Moderate",
+  "Good",
+  "High"
+)
+blue_theme <- theme(
+  panel.background = element_rect(
+    fill = "#BFD5E3", colour = "#6D9EC1",
+    size = 2, linetype = "solid"
+  ),
+  panel.grid.major = element_line(
+    size = 0.5, linetype = "solid",
+    colour = "white"
+  ),
+  panel.grid.minor = element_line(
+    size = 0.5, linetype = "solid",
+    colour = "white"
+  )
+)
+
+names(myColors) <- levels(data$`WFD status`)
+colScale <- scale_colour_manual(name = "WFD status", values = myColors)
+g <- ggplot() +
+  geom_sf(data = transects_pen_1, aes(color = `WFD status`)) +
+   geom_sf(data = transects_pen_2, aes(color = `WFD status`)) +
+  geom_sf(data = area_1$ellipse, alpha = 0) +
+  geom_sf(data = area_2$ellipse, alpha = 0) +
+  geom_sf(data = points, colour = "black") +
+  colScale +
+  blue_theme
+g
+
+single_sf <- dplyr::bind_rows(list(area_2$ellipse,area_1$ellipse))
+union <- st_union(single_sf)
+sum <- area_2$fifthPercentileArea[[1]][1] + area_1$fifthPercentileArea[[1]][1]
+
 
 ```
+
+Merge both 95% confidence area:
+  
+Ellipses Area 1: `r round(area_1$fifthPercentileArea[[1]][1])`
+  
+Ellipses Area 2: `r round(area_2$fifthPercentileArea[[1]][1])`
+  
+Sum Area: `r round(sum)`
+  
+Note 95% confidence area is different from merging actual polygon:
+  
+Union area: `r round(st_area(union))`
+  
+Issue if polygons overlap - how can we give union/merged area?
+
 
 ### ❌ Area of ellipse displayed can be significantly different to area of 95% percentile reported for compliance
 
@@ -108,9 +227,10 @@ paste("Area used for compliance:", round(areas$fifthPercentileArea$`5%`))
 
 paste("Size of ellispse used for displayed on map:", round(sf::st_area(areas$ellipse)))
 
-paste("Percentage diff: ", 
-  100 - round(100 /  as.numeric(sf::st_area(areas$ellipse)) * areas$fifthPercentileArea$`5%`), "%") 
-
+paste(
+  "Percentage diff: ",
+  100 - round(100 / as.numeric(sf::st_area(areas$ellipse)) * areas$fifthPercentileArea$`5%`), "%"
+)
 ```
 
 ### ❌ Two passing samples from each transect can give smaller area than if all samples are analysed.
@@ -119,11 +239,13 @@ paste("Percentage diff: ",
 
 # Create mock survey dataframe
 data <- demo_iqi
-data$IQI <- 
-  c(0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80,0.80, 0.80,
-  0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80,
-  0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80,
-  0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80)
+data$IQI <-
+  c(
+    0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80, 0.80, 0.80,
+    0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80,
+    0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80,
+    0.60, 0.61, 0.62, 0.63, 0.64, 0.66, 0.80
+  )
 
 
 
@@ -145,34 +267,41 @@ ellipse <- areas$ellipse
 myColors <- c(
   # '#d7191c',
   # '#fdae61',
-   "#fecc5c",
-   '#abdda4',
-   '#2b83ba'
+  "#fecc5c",
+  "#abdda4",
+  "#2b83ba"
 )
 data$`WFD status` <- as.factor(data$`WFD status`)
 data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   # "Bad",
   # "Poor",
-   "Moderate",
+  "Moderate",
   "Good",
-   "High"
+  "High"
 )
 blue_theme <- theme(
-  panel.background = element_rect(fill = "#BFD5E3", colour = "#6D9EC1",
-                                size = 2, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                colour = "white")
+  panel.background = element_rect(
+    fill = "#BFD5E3", colour = "#6D9EC1",
+    size = 2, linetype = "solid"
+  ),
+  panel.grid.major = element_line(
+    size = 0.5, linetype = "solid",
+    colour = "white"
+  ),
+  panel.grid.minor = element_line(
+    size = 0.25, linetype = "solid",
+    colour = "white"
   )
+)
 
 names(myColors) <- levels(data$`WFD status`)
 colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  colScale + blue_theme
+  colScale +
+  blue_theme
 g
 ```
 
@@ -184,15 +313,17 @@ areas$fifthPercentileArea$`5%`
 
 Area if only two consecutive samples analysed
 
-```{r seven, message=FALSE}
+```{r seven, message=FALSE, warning=FALSE}
 
 # Create mock survey dataframe
 data <- demo_iqi
 data <- data[c(5:6, 14:15, 21:22, 28:29), ]
-data$IQI <- c(0.64, 0.66,
-              0.64, 0.66,
-              0.64, 0.66,
-              0.64, 0.66)
+data$IQI <- c(
+  0.64, 0.66,
+  0.64, 0.66,
+  0.64, 0.66,
+  0.64, 0.66
+)
 
 
 data <- consecutive_stations(data)
@@ -200,7 +331,7 @@ knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
   col.names = "Adjacent"
 )
 
-probs <- probability_non_linear(data$survey_data)
+probs <- suppressWarnings(probability_non_linear(data$survey_data))
 overrides <- override(probs)
 breachs <- breach(overrides)
 areas <- area(breachs)
@@ -214,33 +345,40 @@ myColors <- c(
   # '#d7191c',
   # '#fdae61',
   # "#fecc5c",
-   '#abdda4'
- #  '#2b83ba'
+  "#abdda4"
+  #  '#2b83ba'
 )
 data$`WFD status` <- as.factor(data$`WFD status`)
 data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   # "Bad",
   # "Poor",
- #  "Moderate",
+  #  "Moderate",
   "Good"
   # "High"
 )
 blue_theme <- theme(
-  panel.background = element_rect(fill = "#BFD5E3", colour = "#6D9EC1",
-                                size = 2, linetype = "solid"),
-  panel.grid.major = element_line(size = 0.5, linetype = 'solid',
-                                colour = "white"),
-  panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                colour = "white")
+  panel.background = element_rect(
+    fill = "#BFD5E3", colour = "#6D9EC1",
+    size = 2, linetype = "solid"
+  ),
+  panel.grid.major = element_line(
+    size = 0.5, linetype = "solid",
+    colour = "white"
+  ),
+  panel.grid.minor = element_line(
+    size = 0.25, linetype = "solid",
+    colour = "white"
   )
+)
 
 names(myColors) <- levels(data$`WFD status`)
 colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  colScale + blue_theme
+  colScale +
+  blue_theme
 g
 ```
 
@@ -256,7 +394,7 @@ Additionally, a reduced analysis doesn't provide 95% statistical confidence in F
 
 ### ❌ Two non-adjacent monitoring stations at Good will fail
 
-Failure is detected but ellipse is still drawn around inner most stations
+Failure is detected but ellipse is still drawn around outer most stations
 
 ```{r non_adajcent_table}
 # Create mock survey dataframe
@@ -293,7 +431,7 @@ data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   # "Bad",
   # "Poor",
-   "Good",
+  "Good",
   "Moderate"
   # "High"
 )
@@ -302,7 +440,8 @@ colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  colScale + blue_theme
+  colScale +
+  blue_theme
 g
 ```
 
@@ -315,16 +454,14 @@ On primary transects, to confirm deposition is not accumulating further from the
 ```{r}
 # Create mock survey dataframe
 data <- demo_iqi
-data <- data[c(1,2,3,10:30), ]
+data <- data[c(1, 2, 3, 10:30), ]
 # data$IQI <- 0.64
 data$IQI[1:3] <- 0.64
 data <- consecutive_stations(data)
 knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
   col.names = "Adjacent"
 )
-knitr::kable(data$survey_data[data$survey_data$Transect == 1, c("Transect", "Station","Distance")]
- 
-)
+knitr::kable(data$survey_data[data$survey_data$Transect == 1, c("Transect", "Station", "Distance")])
 ```
 
 **However this rule is not yet applied in the model/app?**. Note all stations on the transect 1 are Good status but 3rd station is not 150-300 even though 2nd station is less than 100m.
@@ -334,9 +471,9 @@ probs <- probability_non_linear(data$survey_data, loess = TRUE)
 overrides <- override(probs)
 breachs <- breach(overrides)
 
- knitr::kable(data$survey_data[data$survey_data$Transect == 1,c("Transect", "Distance")])
+knitr::kable(data$survey_data[data$survey_data$Transect == 1, c("Transect", "Distance")])
 
-knitr::kable(breachs$breachPositionBestFit[, c(3,4)])
+knitr::kable(breachs$breachPositionBestFit[, c(3, 4)])
 knitr::kable(breachs$breachPositionBestFit)
 ```
 
@@ -350,28 +487,28 @@ data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 43
 ellipse <- areas$ellipse
 myColors <- c(
   # '#d7191c',
-   '#fdae61',
-   "#fecc5c",
-   '#abdda4',
-   '#2b83ba'
+  "#fdae61",
+  "#fecc5c",
+  "#abdda4",
+  "#2b83ba"
 )
 data$`WFD status` <- as.factor(data$`WFD status`)
 data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   # "Bad",
-   "Poor",
-   "Moderate",
+  "Poor",
+  "Moderate",
   "Good",
-   "High"
+  "High"
 )
 names(myColors) <- levels(data$`WFD status`)
 colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  colScale + blue_theme
+  colScale +
+  blue_theme
 g
-
 ```
 
 ### ❌ Model does not provide probability of pass/fail
@@ -402,7 +539,6 @@ Suggest using Loess version:
 data <- demo_iqi
 data <- consecutive_stations(demo_iqi)
 start <- Sys.time()
-
 ```
 
 ```{r, results='hide'}
@@ -424,26 +560,27 @@ data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 43
 ellipse <- areas$ellipse
 myColors <- c(
   # '#d7191c',
-   '#fdae61',
-   "#fecc5c",
-   '#abdda4',
-   '#2b83ba'
+  "#fdae61",
+  "#fecc5c",
+  "#abdda4",
+  "#2b83ba"
 )
 data$`WFD status` <- as.factor(data$`WFD status`)
 data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   # "Bad",
-   "Poor",
-   "Moderate",
+  "Poor",
+  "Moderate",
   "Good",
-   "High"
+  "High"
 )
 names(myColors) <- levels(data$`WFD status`)
 colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  colScale + blue_theme
+  colScale +
+  blue_theme
 g
 ```
 
@@ -465,7 +602,6 @@ end - start
 overrides <- override(probs)
 breachs <- breach(overrides)
 areas <- area(breachs)
-
 ```
 
 ```{r}
@@ -475,26 +611,27 @@ data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 43
 ellipse <- areas$ellipse
 myColors <- c(
   # '#d7191c',
-   '#fdae61',
-   "#fecc5c",
-   '#abdda4',
-   '#2b83ba'
+  "#fdae61",
+  "#fecc5c",
+  "#abdda4",
+  "#2b83ba"
 )
 data$`WFD status` <- as.factor(data$`WFD status`)
 data$`WFD status` <- fct_relevel(
   data$`WFD status`,
   # "Bad",
-   "Poor",
-   "Moderate",
+  "Poor",
+  "Moderate",
   "Good",
-   "High"
+  "High"
 )
 names(myColors) <- levels(data$`WFD status`)
 colScale <- scale_colour_manual(name = "WFD status", values = myColors)
 g <- ggplot() +
   geom_sf(data = data, aes(color = `WFD status`)) +
   geom_sf(data = ellipse, alpha = 0) +
-  colScale + blue_theme
+  colScale +
+  blue_theme
 g
 ```
 
@@ -515,10 +652,9 @@ r <- volcano > -Inf
 # r <- reclassify(x, cbind(-Inf, Inf, 1))
 
 # convert to polygons (you need to have package 'rgeos' installed for this to work)
-pp <- rasterToPolygons(r, dissolve=TRUE)
-plot(raster(orig)) 
-plot(pp, add=TRUE)
-
+pp <- rasterToPolygons(r, dissolve = TRUE)
+plot(raster(orig))
+plot(pp, add = TRUE)
 ```
 
 We then recalibrate this modelled 3D surface of modelled IQI scores with observed IQI. Taking the average difference between predicted IQI and observed IQI. (Or more sophisticate interpolation along transects 'poles' and modelled surface?).
@@ -535,9 +671,8 @@ orig <- raster(orig)
 r <- orig > -Inf
 
 # convert to polygons (you need to have package 'rgeos' installed for this to work)
-pp <- rasterToPolygons(r, dissolve=TRUE)
-plot(pp, add=TRUE)
-
+pp <- rasterToPolygons(r, dissolve = TRUE)
+plot(pp, add = TRUE)
 ```
 
 This is a bit like weather prediction, we have some understanding of the fundamental physical processes, make a prediction based on them and then update with new observations.
