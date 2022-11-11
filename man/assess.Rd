@@ -13,7 +13,8 @@ assess(
   overrideBearing1 = NA,
   overrideBearing2 = NA,
   overrideBearing3 = NA,
-  overrideBearing4 = NA
+  overrideBearing4 = NA,
+  loess = FALSE
 )
 }
 \arguments{
@@ -45,6 +46,8 @@ assess(
 \item{overrideBearing3}{Optional override bearing Transect 3}
 
 \item{overrideBearing4}{Optional override bearing Transect 4}
+
+\item{loess}{Use loess model.}
 }
 \value{
 A named list containing the fifth percentile of the modeled area in

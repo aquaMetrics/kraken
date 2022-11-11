@@ -4,10 +4,14 @@
 \alias{probability_non_linear}
 \title{Probability Non-linear}
 \usage{
-probability_non_linear(data)
+probability_non_linear(data, loess = FALSE, good_moderate = 0.64)
 }
 \arguments{
 \item{data}{The named data frame `survey_data` from `consecutive_station()` function. See examples.}
+
+\item{loess}{Use loess model (instead of best fit model).}
+
+\item{good_moderate}{The EQR ratio for Good - Moderate boundary.}
 }
 \value{
 list containing four named data frames: data, geoDf, geoDfBestFit and
