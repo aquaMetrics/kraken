@@ -34,7 +34,59 @@ library(forcats)
 
 Below is a summary of long-term and short-term development ideas to make running the area calculator model easier. These comments and suggestions are preliminary and need further discussion to verify.
 
-### ❌ Ellipse over estimates area of impact when fitting to stations from six transects?
+
+### New warnings and messages needed
+
+- Messages for 'additional', '555' or '999' transects? i.e. Reference or additional sampling>?
+- Warnings if no ellipse can be calculated (see below for un-coded failures modes)
+
+### No good reporting output from kraken - makes testing, developing, and debugging hard.
+
+Currently, outputs are held in various lists from different functions. Update kraken() function to produce nice map plot and compliance report?
+
+```{r}
+data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
+  package = "kraken"
+), check.names = FALSE)
+
+result <- kraken(data, loess = FALSE, good_moderate = 0.60)
+```
+
+
+### ❌Need ability to change IQI ratio / EQR
+
+If IQI scores from reference stations are worse (or better?) than IQI model suggests, then need ability to update EQR ratio.
+
+For example 0.60:
+
+```{r message=TRUE, warning=FALSE}
+data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
+  package = "kraken"
+), check.names = FALSE)
+
+result <- kraken(data, loess = FALSE, good_moderate = 0.60)
+distances <- result %>% filter(question == "breachDistanceBestFit")
+distances$transect <- 1:nrow(distances)
+knitr::kable(select(distances, location_id, question, response) %>% mutate(location_id = gsub(pattern = "NA", replacement = "", .$location_id) ))
+
+breach <- result %>%  filter(question == "breachPositionEnsemble")
+breach <- breach$object[[1]]
+
+warnings <- result %>%  filter(question == "ellipse_warnings")
+warnings$object[[1]]
+
+info <- result %>%  filter(question == "model_info")
+info$object[[1]]
+
+result %>%  filter(question == "area_95_confidence")
+map <- result %>% filter(question == "map")
+map <- map$object[[1]]
+
+
+```
+
+
+### ❌Ellipse over estimates area of impact when fitting to stations from six transects?
 
 ```{r}
 
@@ -124,7 +176,7 @@ print(paste("Ellipse:", round(st_area(ellipse))))
 print(paste("Polygon: ", round(st_area(polygon))))
 ```
 
-### ❌ Pen groups
+### ❌Pen groups
 
 Currently, we can't automatically deal with separate calculations for pen groups. The above six transect survey would better be calculated as two separate pen groups/ellipses and the two areas merged.
 

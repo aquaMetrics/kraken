@@ -5,7 +5,12 @@
 # library(drc)
 
 
-loop_model <- function(bootstraps = NULL, numberConverged = 0, xy = 1, distVec = NULL) {
+loop_model <- function(bootstraps = NULL,
+                       numberConverged = 0,
+                       xy = 1,
+                       distVec = NULL,
+                       innerTransect = NULL,
+                       bestModel = NULL) {
   convergedCount <- rep(0, length(bootstraps))
   nonConvergedCount <- rep(0, length(bootstraps))
   ypred_mLBoot <- vector(mode = "list", length(bootstraps))
@@ -63,7 +68,9 @@ loop_model <- function(bootstraps = NULL, numberConverged = 0, xy = 1, distVec =
 
 # plan(multisession, workers = 4)
 
-new_loop_model <- function(bootstraps = NULL, distance_vector = NULL) {
+new_loop_model <- function(bootstraps = NULL,
+                           distance_vector = NULL,
+                           bestModel = NULL) {
   models <- purrr::map_df(bootstraps, function(bootstrap) {
      # browser()
      model <- drm(IQI ~ Distance,

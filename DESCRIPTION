@@ -18,15 +18,18 @@ Imports:
   cluster,
   drc,
   dplyr,
+  forcats,
   envalysis,
   geosphere,
+  ggplot2,
   hexbin,
+  magrittr,
   purrr,
+  rlang,
   sf,
   sp,
-  raster,
-  rgdal,
-  rlang
+  tibble,
+  tidyr
 Remotes:
   cran/argosfilter
 Depends: 
@@ -34,11 +37,10 @@ Depends:
 RoxygenNote: 7.2.1
 Suggests: 
     covr,
-    forcats,
-    ggplot2,
     knitr,
     magrittr,
     RColorBrewer,
+    raster,
     rmarkdown,
     testthat (>= 3.0.0),
     tidyr

@@ -24,6 +24,7 @@
 #' @param overrideBearing2 Optional override bearing Transect 2
 #' @param overrideBearing3 Optional override bearing Transect 3
 #' @param overrideBearing4 Optional override bearing Transect 4
+#' @param loess Use loess model.
 #' @return A named list containing the fifth percentile of the modeled area in
 #'   meters, package version and package date.
 #' @export

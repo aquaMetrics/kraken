@@ -6,6 +6,7 @@
 #'
 #' @param data The named data frame `survey_data` from `consecutive_station()` function. See examples.
 #' @param loess Use loess model (instead of best fit model).
+#' @param good_moderate The EQR ratio for Good - Moderate boundary.
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
 #'   hexdfOut.
 #' @export
@@ -20,7 +21,7 @@
 #' data <- consecutive_stations(data)
 #' probability <- probability_non_linear(data$survey_data)
 #' }
-probability_non_linear <- function(data, loess = FALSE) {
+probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
   #   2 Improved 2 station rule method
@@ -106,7 +107,7 @@ probability_non_linear <- function(data, loess = FALSE) {
     }
 
     # Find distance to Good based on 2 consecutive station rule
-    r <- rle(innerTransect$IQI >= 0.64)
+    r <- rle(innerTransect$IQI >= good_moderate)
     s <- NULL
     for (j in 1:length(r$values)) {
       s_j <- (rep(r$values[j], r$lengths[j]))
@@ -254,8 +255,10 @@ probability_non_linear <- function(data, loess = FALSE) {
       hexdf <- rbind(hexdf, surveyData)
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((numberOfStations < 7) & (is.na(reducedSamplingD2G) == FALSE)) {
-      # Situation 2 - Insufficient data for regression model, but do have
-      # reduced monitoring result to use
+      message(
+      "Situation 2 - Insufficient data for regression model, but do have
+      reduced monitoring result to use"
+      )
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -334,8 +337,9 @@ probability_non_linear <- function(data, loess = FALSE) {
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((exists("mL4") == FALSE) &
       (is.na(reducedSamplingD2G) == FALSE)) {
-      # Situation 3 - Unable to fit regression model, but do have reduced
-      # monitoring result to use
+      message(
+      "Situation 3 - Unable to fit regression model, but do have reduced monitoring result to use"
+      )
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -594,7 +598,9 @@ probability_non_linear <- function(data, loess = FALSE) {
 
       bestModel <- modelList[paste(bestFit1[, 2])][[1]]
       # bestModel <- modelList[[grep(bestFit1[, 2], modelList)[1]]]
-
+      # if(i == "West of Burwick - 4") {
+      #   browser()
+      # }
       mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
         data = innerTransect,
         fct = bestModel,
@@ -607,6 +613,11 @@ probability_non_linear <- function(data, loess = FALSE) {
         )
       )))
       residsOut <- data.frame(mL4$predres)
+      # if(loess == TRUE ) {
+      #   mL4 <- stats::loess(IQI ~ Distance, data = innerTransect)
+      #   residsOut <- data.frame("Predicted values" = mL4$fitted,
+      #                           "Residuals" = mL4$residuals)
+      # }
 
       # Collate info on best fit
       if (exists("bestFit1Collated") == FALSE) {
@@ -621,6 +632,18 @@ probability_non_linear <- function(data, loess = FALSE) {
         to = max(as.integer(innerTransect$Distance)),
         by = 1
       ))
+
+      if(loess == TRUE) {
+        mL4 <- loess(IQI ~ Distance, data = innerTransect)
+        distance <- data.frame("Distance" = distVec[, 1])
+        ypred_mL4 <- suppressMessages(suppressWarnings(predict(mL4,
+                                                               newdata = distance
+
+        )))
+        bestFit <- data.frame("Distance" = distVec[, 1],
+                              "IQI" = ypred_mL4)
+      } else {
+
       ypred_mL4 <- suppressMessages(suppressWarnings(predict(mL4,
         newdata = distVec,
         level = 0.95,
@@ -628,13 +651,15 @@ probability_non_linear <- function(data, loess = FALSE) {
       )))
       bestFit <- cbind(distVec, ypred_mL4[, 1])
       names(bestFit) <- c("Distance", "IQI")
+      }
       bestFit$Transect <- i
       D2GbestFit <- as.numeric(
-        bestFit$Distance[min(which(bestFit$IQI >= 0.64))]
+        bestFit$Distance[min(which(bestFit$IQI >= good_moderate))]
       )
 
       # 4 Explore model uncertainty --------------------------------------------
       # Produce bootstrapped data for later fitting
+
       bootDRC <- function(fittedModel) {
         mLboot <- NULL
         data2 <- fittedModel$origData # Original data
@@ -644,6 +669,18 @@ probability_non_linear <- function(data, loess = FALSE) {
           replace = TRUE
         ) # Change column
         return(data2[, ])
+      }
+      if (loess == TRUE) {
+        bootDRC <- function(fittedModel) {
+          mLboot <- NULL
+          data2 <- innerTransect # Original data
+          fitted1 <- fittedModel$fitted # Model predicted IQI values
+          resid1 <- fittedModel$residuals # Residuals
+          data2[, 5] <- fitted1 + sample(scale(resid1, scale = FALSE),
+                                         replace = TRUE
+          ) # Change column
+          return(data2[, ])
+        }
       }
       niter <- 1000 # Number of bootstrap resamples
       mL4List <- (rep(list(mL4), niter))
@@ -665,6 +702,7 @@ probability_non_linear <- function(data, loess = FALSE) {
       #   browser()
       # }
       while ((numberConverged < 500) & (xy <= length(bootDRCdata))) {
+
         mLBoot <- NULL
         if (loess == FALSE) {
           try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
@@ -710,8 +748,8 @@ probability_non_linear <- function(data, loess = FALSE) {
 
       # Calculate distance to Good distribution
       D2Gfunc <- function(x) {
-        if ((max(x$IQI) >= 0.64) & (x$IQI[nrow(x)] >= x$IQI[1])) {
-          as.numeric(x$Distance[min(which(x$IQI >= 0.64))])
+        if ((max(x$IQI) >= good_moderate) & (x$IQI[nrow(x)] >= x$IQI[1])) {
+          as.numeric(x$Distance[min(which(x$IQI >= good_moderate))])
         } else {
           NA
         }

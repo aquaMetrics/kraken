@@ -8,7 +8,6 @@
 #'   `hexdfOut` (hexagon heat map).
 #' @importFrom sp CRS spTransform SpatialPoints
 #' @importFrom stats median
-#' @import rgdal
 #' @importFrom rlang .data
 #' @importFrom dplyr mutate group_by ungroup
 #' @return Named list containing 3 dataframes: `surveyData`,
@@ -26,27 +25,7 @@ breach <- function(data) {
   geoDfBestFit <- data[["geoDfBestFit"]]
 
   # Convert E/N to Lat/Lon
-  wgs84 <- "+init=epsg:4326"
-  bng <-
-    "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
   set.seed(123)
-
-  ConvertCoordinates <- function(easting, northing) {
-    out <- cbind(easting, northing)
-    mask <- !is.na(easting)
-    sp <- spTransform(
-      SpatialPoints(
-        data.frame(
-          as.numeric(easting[mask]),
-          as.numeric(northing[mask])
-        ),
-        proj4string = CRS(bng)
-      ),
-      CRS(wgs84)
-    )
-    out[mask, ] <- sp@coords
-    out
-  }
 
   breachCoordinatesOut <- data.frame(cbind(
     MCFF = NA,
@@ -118,8 +97,7 @@ breach <- function(data) {
   } else {
 
     # Distance ----------------------------------------------------------------
-    LatLon <- as.data.frame(ConvertCoordinates(geoDf$Easting, geoDf$Northing))
-    names(LatLon) <- c("Longitude", "Latitude")
+    LatLon <- convert_coordinates(geoDf$Easting, geoDf$Northing)
     geoDf <- cbind(geoDf, LatLon)
 
     # Data prep complete: onto the calc proper
@@ -146,11 +124,10 @@ breach <- function(data) {
     )
 
     # Best-fit distances ------------------------------------------------------
-    LatLonBestFit <- as.data.frame(ConvertCoordinates(
+    LatLonBestFit <- convert_coordinates(
       geoDfBestFit$Easting,
       geoDfBestFit$Northing
-    ))
-    names(LatLonBestFit) <- c("Longitude", "Latitude")
+    )
     geoDfBestFit <- cbind(geoDfBestFit, LatLonBestFit)
 
     # Data prep complete: onto the calc proper

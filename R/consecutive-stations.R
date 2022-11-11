@@ -4,6 +4,7 @@
 #' stations have been sampled.
 #'
 #' @param data Data frame with survey data
+#' @param good_moderate The EQR ratio for Good - Moderate boundary.
 #'
 #' @return A named list of two data frames `sample_point_checks` and
 #'   `survey_data`
@@ -14,7 +15,7 @@
 #' \dontrun{
 #' stations <- consecutive_stations(demo_iqi)
 #' }
-consecutive_stations <- function(data) {
+consecutive_stations <- function(data, good_moderate = 0.64) {
 
   # summaryOuput - Survey - Initial checks
   set.seed(123)
@@ -66,28 +67,10 @@ consecutive_stations <- function(data) {
       }
 
       # Convert E/N to Lat/Lon -------------------------------------------------
-      bng <- "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
-      ConvertCoordinates <- function(easting, northing) {
-        out <- cbind(easting, northing)
-        mask <- !is.na(easting)
-        sp <- sp::spTransform(
-          sp::SpatialPoints(list(
-            easting[mask],
-            northing[mask]
-          ),
-          proj4string = suppressWarnings(sp::CRS(bng))
-          ),
-          sp::CRS(SRS_string ="EPSG:4326")
-        )
-        out[mask, ] <- sp@coords
-        out
-      }
-      LatLon <- as.data.frame(ConvertCoordinates(
+      LatLon <- convert_coordinates(
         innerTransect$Easting,
         innerTransect$Northing
-      ))
-      names(LatLon) <- c("Longitude", "Latitude")
-      LatLon
+      )
       innerTransect <- cbind(innerTransect, LatLon)
 
       # Diagnose transect bearing using principal component analysis -----------
@@ -125,14 +108,13 @@ consecutive_stations <- function(data) {
       }
 
       # Calculate distance from beginning --------------------------------------
-      firstPoints <- sp::SpatialPoints(coords = cbind(
-        innerTransect$Longitude,
-        innerTransect$Latitude
-      ))
-      WGS84 <- "+proj=longlat +datum=WGS84
-          +no_defs +ellps=WGS84 +towgs84=0,0,0"
-      raster::crs(firstPoints) <- WGS84
+      sf_points <- as.data.frame(cbind(innerTransect$Longitude,
+                                    innerTransect$Latitude))
+      sf_points <- sf::st_as_sf(sf_points, coords = c(1, 2), crs = 4326)
+      firstPoints <- sf::st_transform(sf_points, crs = 4326)
+      firstPoints <- sf::as_Spatial(firstPoints)
       Distances <- 1000 * (sp::spDists(firstPoints, longlat = TRUE)[1, ])
+
 
       if (min(diff(Distances)) < 20) {
         stationSpacingMsg <-
@@ -144,7 +126,7 @@ consecutive_stations <- function(data) {
       geoDf <- cbind(Bearing = bestFitBearing, Distance = Distances)
 
       # Find distance to Good based on 2 consecutive station rule --------------
-      r <- rle(innerTransect$IQI >= 0.64)
+      r <- rle(innerTransect$IQI >= good_moderate)
       reducedSamplingD2G <- NA
       s <- NULL
       for (j in 1:length(r$values)) {
@@ -215,7 +197,7 @@ consecutive_stations <- function(data) {
   testOutput$`WFD status` <- "unclassifiable"
   testOutput$`WFD status`[testOutput$IQI >= 0.75] <- "High"
   testOutput$`WFD status`[testOutput$IQI < 0.75] <- "Good"
-  testOutput$`WFD status`[testOutput$IQI < 0.64] <- "Moderate"
+  testOutput$`WFD status`[testOutput$IQI < good_moderate] <- "Moderate"
   testOutput$`WFD status`[testOutput$IQI < 0.44] <- "Poor"
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
 

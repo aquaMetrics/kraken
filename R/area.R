@@ -14,6 +14,7 @@
 #' @importFrom sf st_polygon st_sf st_sfc st_area
 #' @importFrom dplyr select bind_rows
 #' @importFrom utils packageDate packageVersion
+#' @importFrom rlang .data
 #' @examples
 #' \dontrun{
 #' probability <- probability_non_linear(demo_iqi)
@@ -41,8 +42,6 @@ area <- function(data) {
       return(x)
     }
   )
-
-
   transectCombinations <- unique(breachPositionEnsemble$rank)
   ellipseArea <- data.frame(Area = NULL)
   fifthPercentileAreaDynamic <- rep(NA, length(transectCombinations))
@@ -153,7 +152,9 @@ area <- function(data) {
       suppressWarnings(cluster::ellipsoidhull(breachPositions_bestFit))
     ))
 
-    polygon <- select(breachPositionBestFit, breachLongitude, breachLatitude)
+    polygon <- select(breachPositionBestFit,
+                      .data$breachLongitude,
+                      .data$breachLatitude)
     polygon <- bind_rows(polygon, polygon[1, ])
     polygon <- st_polygon(list(as.matrix(polygon)))
     polygon <- st_sfc(polygon, crs = 4326)
@@ -189,7 +190,16 @@ area <- function(data) {
   fifthPercentileArea[[2]] <- packageVersion("kraken")[1]
   fifthPercentileArea[[3]] <- packageDate("kraken")[1]
   names(fifthPercentileArea) <- c("5%", "package version", "package date")
-  data <- list(ellipse, fifthPercentileArea, outDf, polygon)
-  names(data) <- c("ellipse", "fifthPercentileArea", "spotfire_ellipse", "polygon")
+
+  data <- list(ellipse,
+               fifthPercentileArea,
+               outDf,
+               polygon,
+               list(warning2,warning2))
+  names(data) <- c("ellipse",
+                   "fifthPercentileArea",
+                   "spotfire_ellipse",
+                   "polygon",
+                   "warnings")
   return(data)
 }

@@ -4,10 +4,12 @@
 \alias{consecutive_stations}
 \title{Consecutive Stations}
 \usage{
-consecutive_stations(data)
+consecutive_stations(data, good_moderate = 0.64)
 }
 \arguments{
 \item{data}{Data frame with survey data}
+
+\item{good_moderate}{The EQR ratio for Good - Moderate boundary.}
 }
 \value{
 A named list of two data frames `sample_point_checks` and

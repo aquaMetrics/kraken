@@ -14,17 +14,44 @@ kraken(
   overrideBearing2 = NA,
   overrideBearing3 = NA,
   overrideBearing4 = NA,
-  loess = FALSE
+  loess = FALSE,
+  hera_format = FALSE,
+  good_moderate = 0.64
 )
 }
 \arguments{
-\item{loess}{}
+\item{data}{Input data frame see `demo_iqi`.}
+
+\item{overrideTransect1}{overrideTransect1}
+
+\item{overrideTransect2}{overrideTransect2}
+
+\item{overrideTransect3}{overrideTransect3}
+
+\item{overrideTransect4}{overrideTransect4}
+
+\item{overrideBearing1}{overrideBearing1}
+
+\item{overrideBearing2}{overrideBearing2}
+
+\item{overrideBearing3}{overrideBearing3}
+
+\item{overrideBearing4}{overrideBearing4}
+
+\item{loess}{Use loess model instead of fitting mulitple different models}
+
+\item{hera_format}{Flag if import data in 'hera' format}
+
+\item{good_moderate}{Good-Moderate boundary value}
+}
+\value{
+Data frame contain 8 variables.
 }
 \description{
 Calculate Footprint
 }
 \examples{
 \dontrun{
-probability <- kraken(demo_iqi)
+probability <- kraken(demo_iqi, loess = TRUE)
 }
 }

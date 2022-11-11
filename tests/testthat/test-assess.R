@@ -11,7 +11,7 @@ test_that("test reintraid 2020 against reported results", {
   new_area <- assess(reintraid, loess = TRUE)
   # Current spotfire testing
   testthat::expect_equal(round(area[[1]], 0), 35780)
-  testthat::expect_equal(round(new_area[[1]], 0), 34128)
+  testthat::expect_equal(round(new_area[[1]], 0), 34433)
   # Result reported for compliance is slightly different (37070). Possibly due
   # to slight change to area calculator code since Feb 2022 or error in input
   # data(?). Either way, no impact on compliance (Allowable mixing zone: 86606)
