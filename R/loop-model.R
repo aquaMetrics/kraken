@@ -1,10 +1,4 @@
 
-# library(purrr)
-# library(dplyr)
-# library(furrr)
-# library(drc)
-
-
 loop_model <- function(bootstraps = NULL,
                        numberConverged = 0,
                        xy = 1,
