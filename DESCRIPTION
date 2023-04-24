@@ -33,16 +33,14 @@ Imports:
 Remotes:
   cran/argosfilter
 Depends: 
-    R (>= 3.60)
+    R (>= 4.0)
 RoxygenNote: 7.2.1
 Suggests: 
     covr,
     knitr,
-    magrittr,
     RColorBrewer,
     raster,
     rmarkdown,
-    testthat (>= 3.0.0),
-    tidyr
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
