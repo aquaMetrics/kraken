@@ -33,7 +33,7 @@ Imports:
 Remotes:
   cran/argosfilter
 Depends: 
-    R (>= 3.60)
+    R (>= 4.0)
 RoxygenNote: 7.2.1
 Suggests: 
     covr,
