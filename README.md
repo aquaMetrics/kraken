@@ -76,16 +76,16 @@ example of plotting the ellipse and survey data:
 ``` r
 library(sf)
 library(ggplot2)
-# Convert survey data to spatial
-data <- consecutive_stations(demo_iqi)
-data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
+
 # Calculate area without overrides
 data <- consecutive_stations(demo_iqi)
 probs <- probability_non_linear(data$survey_data)
 breachs <- breach(probs)
 areas <- area(breachs)
 ellipse <- areas$ellipse
-g <- ggplot() + geom_sf(data = data, aes(color = IQI)) + 
+# Convert survey data to spatial
+data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
+g <- ggplot() + geom_sf(data = data, aes(color = `WFD status`)) + 
                 geom_sf(data = ellipse, alpha = 0)
 g
 ```
