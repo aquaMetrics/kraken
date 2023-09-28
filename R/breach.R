@@ -6,7 +6,6 @@
 #'   `probability_non_linear` function. These are:  `data` (survey), `geoDf`
 #'   (distances to good),`geoDfBestFit` (best fit distance) to good and
 #'   `hexdfOut` (hexagon heat map).
-#' @importFrom sp CRS spTransform SpatialPoints
 #' @importFrom stats median
 #' @importFrom rlang .data
 #' @importFrom dplyr mutate group_by ungroup
