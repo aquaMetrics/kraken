@@ -43,13 +43,13 @@ jobs:
           use-public-rspm: true
 
       - name: Install broken dependency
-      - uses: r-lib/actions/setup-r-dependencies@v2
+        uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
           needs: check
 
       - name: Install package dependencies
-      - uses: r-lib/actions/check-r-package@v2
+        uses: r-lib/actions/check-r-package@v2
         with:
           error-on: '"error"'
           upload-snapshots: true
