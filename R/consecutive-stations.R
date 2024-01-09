@@ -112,8 +112,11 @@ consecutive_stations <- function(data, good_moderate = 0.64) {
                                     innerTransect$Latitude))
       sf_points <- sf::st_as_sf(sf_points, coords = c(1, 2), crs = 4326)
       firstPoints <- sf::st_transform(sf_points, crs = 4326)
-      firstPoints <- sf::as_Spatial(firstPoints)
-      Distances <- 1000 * (sp::spDists(firstPoints, longlat = TRUE)[1, ])
+      sf:::sf_use_s2(FALSE)
+      Distances <- sf::st_distance(sf_points)[1, ]
+      Distances <- units::drop_units(Distances)
+
+      # Distances <- 1000 * (sp::spDists(firstPoints, longlat = TRUE)[1, ])
 
 
       if (min(diff(Distances)) < 20) {

@@ -26,10 +26,12 @@ Imports:
   purrr,
   rlang,
   sf,
+  shiny,
   tibble,
   tidyr
 Remotes:
-  cran/argosfilter
+  cran/argosfilter,
+  ecodata1/hera
 Depends: 
     R (>= 4.0)
 RoxygenNote: 7.2.3
