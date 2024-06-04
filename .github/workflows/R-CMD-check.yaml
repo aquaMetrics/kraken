@@ -47,6 +47,16 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - name: "uninstall matrix"
+        if: matrix.config.r == '4.0.2'
+        run: remove.packages("Matrix")
+        shell: Rscript {0}
+
+      - name: "install old matrix package for 4.02"
+        if: matrix.config.r == '4.0.2'
+        run: install.packages('https://cran.r-project.org/src/contrib/Archive/Matrix/Matrix_1.6-5.tar.gz', repos = NULL)
+        shell: Rscript {0}
+
       - name: Install package dependencies
         uses: r-lib/actions/check-r-package@v2
         with:

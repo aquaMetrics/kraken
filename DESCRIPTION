@@ -24,7 +24,7 @@ Imports:
   ggplot2,
   hexbin,
   magrittr,
-  Matrix (== 1.6.2),
+  Matrix,
   purrr,
   rlang,
   sf,
