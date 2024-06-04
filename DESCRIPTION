@@ -25,6 +25,7 @@ Imports:
   hexbin,
   magrittr,
   purrr,
+  readxl,
   rlang,
   sf,
   shiny,
