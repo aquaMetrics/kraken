@@ -31,7 +31,8 @@ Imports:
   shiny,
   sp,
   tibble,
-  tidyr
+  tidyr,
+  uuid
 Remotes:
   cran/argosfilter,
   ecodata1/hera
