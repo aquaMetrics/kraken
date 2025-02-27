@@ -1006,7 +1006,41 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
   D2Gdistr <- D2Gdistr[-1, ]
   D2GbestFitResults <- D2GbestFitResults[-1, ]
   status <- "BeenRun"
+  # If distance to good is NA - set to last station (minimal area of impact)
+  if(any(is.na(D2GbestFitResults$D2G))) {
 
+  # last station in transect is good?
+    last_station <- data %>%
+      group_by(Transect) %>%
+      dplyr::arrange(Transect, desc(Station)) %>%
+      dplyr::summarise(last_transect = dplyr::first(`WFD status`))
+
+    last_station <- last_station %>% filter(Transect == which(is.na(D2GbestFitResults$D2G)))
+
+    if(all(last_station$last_transect %in% c("Good","High"))) {
+      summaryOutput$type <-
+        "area based on at least one transect reaching good at last station"
+      summaryOutput$sign <- NA
+    } else {
+      summaryOutput$type <- "minimal area"
+      summaryOutput$sign <- ">"
+    }
+
+  mini_dist_good <- data %>%
+    group_by(Transect) %>%
+    dplyr::summarise(mini_dist_good = max(Distance))
+
+  D2GbestFitResults$D2G[is.na(D2GbestFitResults$D2G)] <-
+    mini_dist_good$mini_dist_good[which(is.na(D2GbestFitResults$D2G))]
+
+
+
+  mini_dist_good$Transect <- as.character(mini_dist_good$Transect)
+  D2Gdistr <- dplyr::inner_join(D2Gdistr, mini_dist_good, by = "Transect")
+  D2Gdistr$D2G <- D2Gdistr$mini_dist_good
+
+  }
+  # Put outputs into list
   data <- list(
     summaryOutput,
     D2Gdistr,

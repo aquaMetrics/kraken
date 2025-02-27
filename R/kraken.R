@@ -35,6 +35,7 @@ kraken <- function(data,
                    loess = FALSE,
                    hera_format = FALSE,
                    good_moderate = 0.64) {
+
   if (hera_format == TRUE) {
     data <- filter(data, .data$question %in% c(
       "Site Name",
@@ -167,6 +168,7 @@ kraken <- function(data,
     data$Northing <- as.numeric(data$Northing)
     data$IQI <- as.numeric(data$IQI)
   }
+
   data$survey_id <- paste0(data$MCFF, "-", as.numeric(data$Survey_date))
 
   all_output <- purrr::map_df(split(data, data$survey_id), function(data) {
@@ -199,7 +201,7 @@ kraken <- function(data,
     )
     breach$response <- as.character(breach$response)
 
-    hex <- tibble::tibble(
+    breachPositionEnsemble <- tibble::tibble(
       object = list(breachs$breachPositionEnsemble),
       response = NA,
       question = "breachPositionEnsemble"
@@ -231,7 +233,7 @@ kraken <- function(data,
       names_to = "question"
     )
 
-    warning <- tidyr::pivot_longer(data$sample_point_checks,
+    warning <- tidyr::pivot_longer(breachs$surveyData,
       cols = c(
         "stationNumber",
         "twoConsecutiveStations"
@@ -244,21 +246,35 @@ kraken <- function(data,
     map <- create_map(data = data, areas = areas)
     map <- tibble::tibble(
       "question" = "map",
-      "response" = NA,
+      "response" = "object",
       "object" = list(map)
     )
 
+    context_warnings <- breachs$surveyData
+      context_warning <-
+      tibble::tibble(
+        "question" = c("sign", "area_warning"),
+        "response" = c(unique(context_warnings$sign),
+                       unique(context_warnings$type))
+      )
 
     geo_df <- tibble::tibble(
       "question" = "geoDf",
-      "response" = NA,
+      "response" = "object",
       "object" = list(overrides$geoDf)
     )
     probs <- tibble::tibble(
       "question" = "model_info",
-      "response" = NA,
+      "response" = "object",
       "object" = list(overrides$data)
     )
+
+    hex_df <- tibble::tibble(
+      "question" = "hex_df",
+      "response" = "object",
+      "object" = list(overrides$hexdfOut)
+    )
+
 
     distance_to_good <- dplyr::group_by(overrides$geoDf, .data$Transect)
     distance_to_good <- dplyr::summarise(distance_to_good,
@@ -288,10 +304,12 @@ kraken <- function(data,
       area,
       survey_data,
       polygons,
-      hex,
+      breachPositionEnsemble,
+      hex_df,
       map,
       probs,
       warnings,
+      context_warning,
       geo_df,
       distance_to_good
     )
