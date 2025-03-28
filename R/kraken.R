@@ -12,6 +12,8 @@
 #' @param loess Use loess model instead of fitting mulitple different models
 #' @param hera_format Flag if import data in 'hera' format
 #' @param good_moderate  Good-Moderate boundary value
+#' @param method Type of method used to analyse samples either 'iqi' or
+#'   'residue'.
 #'
 #' @return Data frame contain 8 variables.
 #' @export
@@ -34,7 +36,8 @@ kraken <- function(data,
                    overrideBearing4 = NA,
                    loess = FALSE,
                    hera_format = FALSE,
-                   good_moderate = 0.64) {
+                   good_moderate = 0.64,
+                   method = "iqi") {
 
   if (hera_format == TRUE) {
     data <- filter(data, .data$question %in% c(
@@ -172,10 +175,13 @@ kraken <- function(data,
   data$survey_id <- paste0(data$MCFF, "-", as.numeric(data$Survey_date))
 
   all_output <- purrr::map_df(split(data, data$survey_id), function(data) {
-    data <- consecutive_stations(data, good_moderate = good_moderate)
+    data <- consecutive_stations(data,
+                                 good_moderate = good_moderate,
+                                 method = method)
     probs <- probability_non_linear(data$survey_data,
       loess = loess,
-      good_moderate = good_moderate
+      good_moderate = good_moderate,
+      method = method
     )
     overrides <- override(
       probs,
@@ -243,7 +249,7 @@ kraken <- function(data,
     )
 
 
-    map <- create_map(data = data, areas = areas)
+    map <- create_map(data = data, areas = areas, method = method)
     map <- tibble::tibble(
       "question" = "map",
       "response" = "object",

@@ -23,7 +23,8 @@ Export data from fishfarm database as .csv file. Save locally and use the 'Impor
 library(kraken)
 library(tidyverse)
 
-test_data <- read.csv("inst/extdat/test-data/residue-test-data.csv")
+test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
+
 # Filter data for my particular farm/date of interest
 test_data <- filter(test_data, Site.ID == "BELL1")
 
@@ -52,9 +53,14 @@ test_data <- tidyr::pivot_longer(test_data,
 Run data through calculations.
 
 ```{r data}
-# Create a ratio otherwise Pass/Fail is wrong way around...
-test_data$IQI <- 768 / test_data$IQI
-output <- kraken::kraken(test_data, good_moderate = 1)
+output <- kraken::kraken(test_data, good_moderate = 768, method = "residue", loess = TRUE)
+
+# Or to keep on same scale as IQI create a ratio
+# Need argument to swtich between method and ratio/absolute value?
+# test_data$residue <- test_data$IQI 
+# test_data$IQI <- 768 / test_data$IQI
+# output <- kraken::kraken(test_data, good_moderate = 1, method = "residue")
+
 ```
 
 ## Map
@@ -72,10 +78,13 @@ Need to create a plot of the regression line based on the optimal model fitted..
 Bit complicated...find which model has been used for each transect
 
 ```{r}
+
 model <- output$object[output$question == "model_info"]
 model
 ```
 
+Model: 'Regression model fit not of sufficient quality to use' - not sure why?
+Is the model struggling to fit? Wasn't a problem with earlier test data?
 
 ```{r plots}
 # pivot output

@@ -1,5 +1,5 @@
 #' @importFrom rlang .data
-create_map <- function(data, areas) {
+create_map <- function(data, areas, method) {
   # Convert survey data to spatial
   test <- sf::st_as_sf(data$survey_data,
     coords = c("Longitude", "Latitude"),
@@ -8,22 +8,33 @@ create_map <- function(data, areas) {
   # Calculate area without overrides
   ellipse <- areas$ellipse
   polygon <- areas$polygon
-  my_colors <- data.frame(colour = c(
-    "#d7191c",
-    "#fdae61",
-    "#fecc5c",
-    "#abdda4",
-    "#2b83ba"
-  ), status = c(
-    "Bad",
-    "Poor",
-    "Moderate",
-    "Good",
-    "High"
-  ))
+  browser()
+  if (method == "iqi") {
+    my_colors <- data.frame(colour = c(
+      "#d7191c",
+      "#fdae61",
+      "#fecc5c",
+      "#abdda4",
+      "#2b83ba"
+    ), status = c(
+      "Bad",
+      "Poor",
+      "Moderate",
+      "Good",
+      "High"
+    ))
+  } else {
+    my_colors <- data.frame(colour = c(
+      "#d7191c",
+      "#abdda4"
+    ), status = c(
+      "Fail",
+      "Pass"
+    ))
+  }
 
   my_colours <- dplyr::filter(my_colors, .data$status %in%
-                                unique(test$`WFD status`))
+    unique(test$`WFD status`))
 
 
   test$`WFD status` <- as.factor(test$`WFD status`)
@@ -48,7 +59,7 @@ create_map <- function(data, areas) {
 
   # names(my_colours$colour) <- levels(data$`WFD status`)
   colScale <- ggplot2::scale_colour_manual(
-    name = "WFD status",
+    name = "Status",
     values = my_colours$colour
   )
   g <- ggplot2::ggplot() +
