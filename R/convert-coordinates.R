@@ -12,8 +12,8 @@ convert_coordinates <- function(easting,
   )
   points_sp <- sf::st_as_sf(points_df, coords = c(1, 2), crs = bng)
   sp <- sf::st_transform(points_sp, crs = wgs84)
-  out$easting[mask] <- unlist(purrr::map(sp$geometry, 1))
-  out$northing[mask] <- unlist(purrr::map(sp$geometry, 2))
+  out$easting[mask]  <- sf::st_coordinates(sp$geometry)[,1]
+  out$northing[mask]  <- sf::st_coordinates(sp$geometry)[,2]
   names(out) <- c("Longitude", "Latitude")
   return(out)
 }
