@@ -1,0 +1,105 @@
+---
+title: "Residue Example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Residue Example}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning =  FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+## Data
+
+Export data from fishfarm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environmment pane to import data or use `read.csv()` funtion and paste in file path - but replace  '\' with '/' in the path.
+
+```{r data}
+library(kraken)
+library(tidyverse)
+
+test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
+
+# Filter data for my particular farm/date of interest
+test_data <- filter(test_data, Site.ID == "BELL1")
+
+# Select only the columns needed for calculations
+test_data <- select(test_data,
+  "Survey_date" = Survey.Date,
+  "MCFF" = Site.ID,
+  Transect,
+  "Station" = Station.Order..transect.,
+  Easting,
+  Northing,
+  "Embz-1" = EmBz.residues..Rep.1...ng.kg.,
+  "Embz-2" = EmBz.residues..Rep.2..ng.kg.,
+  "Embz-3" = EmBz.residues..Rep.3..ng.kg.
+  )
+
+# Pivot the data into structure require for calculations
+test_data <- tidyr::pivot_longer(test_data, 
+                                 cols = c("Embz-1", "Embz-2", "Embz-3"), 
+                                 names_to = "Station_id", values_to = "IQI")
+```
+
+
+## Calculate
+
+Run data through calculations.
+
+```{r data}
+output <- kraken::kraken(test_data, good_moderate = 768, method = "residue", loess = TRUE)
+
+# Or to keep on same scale as IQI create a ratio
+# Need argument to swtich between method and ratio/absolute value?
+# test_data$residue <- test_data$IQI 
+# test_data$IQI <- 768 / test_data$IQI
+# output <- kraken::kraken(test_data, good_moderate = 1, method = "residue")
+
+```
+
+## Map
+
+```{r data}
+
+map <- output$object[output$question == "map"]
+map
+
+```
+
+## Including Plots
+
+Need to create a plot of the regression line based on the optimal model fitted...
+Bit complicated...find which model has been used for each transect
+
+```{r}
+
+model <- output$object[output$question == "model_info"]
+model
+```
+
+Model: 'Regression model fit not of sufficient quality to use' - not sure why?
+Is the model struggling to fit? Wasn't a problem with earlier test data?
+
+```{r plots}
+# pivot output
+# need unique test id!!!
+# data <- output %>% dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
+# data <- data %>% filter(response == "BELL1 - 1") 
+# data$results_id <- sort(rep(1:7,3))
+# data <- pivot_wider(data, names_from = question, values_from = response)
+# 
+# 
+# 
+# drm(IQI~Distance, Transect, data=, fct=MM.3())
+# drc::MM.3()
+
+
+```
+
+

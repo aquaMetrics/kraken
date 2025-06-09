@@ -163,7 +163,6 @@ breach <- function(data) {
     "breachDistance_50thPercentile" = median(.data$breachDistance)
   )
   breachCoordinatesOut <- ungroup(breachCoordinatesOut)
-
   # Return named list of outputs ----------------------------------------------
   data <- list(
     outSurveyData,

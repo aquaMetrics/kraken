@@ -1,7 +1,7 @@
 Package: kraken
 Type: Package
 Title: Assess Size of the Mixing Zone Ellipse
-Version: 0.2.1.9000
+Version: 0.2.3
 Authors@R: c(
   person("Tim", "Foster", email = "tim.foster@sepa.org.uk",
   role = c("ctb", "cre")),
@@ -18,21 +18,27 @@ Imports:
   cluster,
   drc,
   dplyr,
+  DT,
   forcats,
   geosphere,
   ggplot2,
   hexbin,
   magrittr,
   purrr,
+  readxl,
   rlang,
   sf,
+  shiny,
+  sp,
   tibble,
-  tidyr
+  tidyr,
+  uuid
 Remotes:
-  cran/argosfilter
+  cran/argosfilter,
+  ecodata1/hera
 Depends: 
     R (>= 4.0)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests: 
     covr,
     knitr,

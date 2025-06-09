@@ -49,7 +49,7 @@ data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
   package = "kraken"
 ), check.names = FALSE)
 
-result <- kraken(data, loess = FALSE, good_moderate = 0.60)
+result <- kraken(data, loess = TRUE, good_moderate = 0.60)
 ```
 
 
@@ -730,3 +730,5 @@ plot(pp, add = TRUE)
 This is a bit like weather prediction, we have some understanding of the fundamental physical processes, make a prediction based on them and then update with new observations.
 
 This avoids assumption of ellipse shape and gracefully deals with missing data (transects). Puts us on a bases to further improve and build understanding and better models in future.
+
+

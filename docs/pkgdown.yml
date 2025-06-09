@@ -1,0 +1,7 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  development: development.html
+  redesign: redesign.html
+last_built: 2025-01-22T16:00Z

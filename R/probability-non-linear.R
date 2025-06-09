@@ -7,6 +7,8 @@
 #' @param data The named data frame `survey_data` from `consecutive_station()` function. See examples.
 #' @param loess Use loess model (instead of best fit model).
 #' @param good_moderate The EQR ratio for Good - Moderate boundary.
+#' @param method Type of method used to analyse samples, either "iqi" or
+#'   "residue".
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
 #'   hexdfOut.
 #' @export
@@ -20,7 +22,10 @@
 #' data <- consecutive_stations(data)
 #' probability <- probability_non_linear(data$survey_data)
 #' }
-probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
+probability_non_linear <- function(data,
+                                   loess = FALSE,
+                                   good_moderate = 0.64,
+                                   method = "iqi") {
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
   #   2 Improved 2 station rule method
@@ -104,9 +109,12 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
           numberOfStations, ")"
         )
     }
-
     # Find distance to Good based on 2 consecutive station rule
-    r <- rle(innerTransect$IQI >= good_moderate)
+    if (method == "iqi") {
+      r <- rle(innerTransect$IQI >= good_moderate)
+    } else {
+      r <- rle(innerTransect$IQI < good_moderate)
+    }
     s <- NULL
     for (j in 1:length(r$values)) {
       s_j <- (rep(r$values[j], r$lengths[j]))
@@ -255,7 +263,7 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((numberOfStations < 7) & (is.na(reducedSamplingD2G) == FALSE)) {
       message(
-      "Situation 2 - Insufficient data for regression model, but do have
+        "Situation 2 - Insufficient data for regression model, but do have
       reduced monitoring result to use"
       )
       summaryOutput <- rbind(
@@ -337,7 +345,7 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
     } else if ((exists("mL4") == FALSE) &
       (is.na(reducedSamplingD2G) == FALSE)) {
       message(
-      "Situation 3 - Unable to fit regression model, but do have reduced monitoring result to use"
+        "Situation 3 - Unable to fit regression model, but do have reduced monitoring result to use"
       )
       summaryOutput <- rbind(
         summaryOutput,
@@ -632,29 +640,36 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
         by = 1
       ))
 
-      if(loess == TRUE) {
+      if (loess == TRUE) {
         mL4 <- loess(IQI ~ Distance, data = innerTransect)
         distance <- data.frame("Distance" = distVec[, 1])
         ypred_mL4 <- suppressMessages(suppressWarnings(predict(mL4,
-                                                               newdata = distance
-
+          newdata = distance
         )))
-        bestFit <- data.frame("Distance" = distVec[, 1],
-                              "IQI" = ypred_mL4)
+        bestFit <- data.frame(
+          "Distance" = distVec[, 1],
+          "IQI" = ypred_mL4
+        )
       } else {
-
-      ypred_mL4 <- suppressMessages(suppressWarnings(predict(mL4,
-        newdata = distVec,
-        level = 0.95,
-        interval = "confidence"
-      )))
-      bestFit <- cbind(distVec, ypred_mL4[, 1])
-      names(bestFit) <- c("Distance", "IQI")
+        ypred_mL4 <- suppressMessages(suppressWarnings(predict(mL4,
+          newdata = distVec,
+          level = 0.95,
+          interval = "confidence"
+        )))
+        bestFit <- cbind(distVec, ypred_mL4[, 1])
+        names(bestFit) <- c("Distance", "IQI")
       }
       bestFit$Transect <- i
-      D2GbestFit <- as.numeric(
-        bestFit$Distance[min(which(bestFit$IQI >= good_moderate))]
-      )
+      if (method == "iqi") {
+        D2GbestFit <- as.numeric(
+          bestFit$Distance[min(which(bestFit$IQI >= good_moderate))]
+        )
+      } else {
+        D2GbestFit <- as.numeric(
+          bestFit$Distance[min(which(bestFit$IQI < good_moderate))]
+        )
+      }
+
 
       # 4 Explore model uncertainty --------------------------------------------
       # Produce bootstrapped data for later fitting
@@ -676,7 +691,7 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
           fitted1 <- fittedModel$fitted # Model predicted IQI values
           resid1 <- fittedModel$residuals # Residuals
           data2[, 5] <- fitted1 + sample(scale(resid1, scale = FALSE),
-                                         replace = TRUE
+            replace = TRUE
           ) # Change column
           return(data2[, ])
         }
@@ -701,7 +716,6 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
       #   browser()
       # }
       while ((numberConverged < 500) & (xy <= length(bootDRCdata))) {
-
         mLBoot <- NULL
         if (loess == FALSE) {
           try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
@@ -746,13 +760,26 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
       bootDRCmods <- ypred_mLBoot[-which(sapply(ypred_mLBoot, is.null))]
 
       # Calculate distance to Good distribution
-      D2Gfunc <- function(x) {
-        if ((max(x$IQI) >= good_moderate) & (x$IQI[nrow(x)] >= x$IQI[1])) {
-          as.numeric(x$Distance[min(which(x$IQI >= good_moderate))])
-        } else {
-          NA
+      if (method == "iqi") {
+        D2Gfunc <- function(x) {
+          if ((max(x$IQI) >= good_moderate) & (x$IQI[nrow(x)] >= x$IQI[1])) {
+            as.numeric(x$Distance[min(which(x$IQI >= good_moderate))])
+          } else {
+            NA
+          }
+        }
+      } else {
+        D2Gfunc <- function(x) {
+          if ((max(x$IQI) < good_moderate) & (x$IQI[nrow(x)] >= x$IQI[1])) {
+            as.numeric(x$Distance[min(which(x$IQI < good_moderate))])
+          } else {
+            NA
+          }
         }
       }
+
+
+
       distanceToGoodDist <- lapply(bootDRCmods, D2Gfunc)
       distanceToGoodDist <- as.data.frame(t(as.data.frame(distanceToGoodDist)))
       names(distanceToGoodDist) <- c("D2G")
@@ -1006,7 +1033,39 @@ probability_non_linear <- function(data, loess = FALSE, good_moderate = 0.64) {
   D2Gdistr <- D2Gdistr[-1, ]
   D2GbestFitResults <- D2GbestFitResults[-1, ]
   status <- "BeenRun"
+  # If distance to good is NA - set to last station (minimal area of impact)
+  if (any(is.na(D2GbestFitResults$D2G))) {
+    # last station in transect is good?
+    last_station <- data %>%
+      group_by(Transect) %>%
+      dplyr::arrange(Transect, desc(Station)) %>%
+      dplyr::summarise(last_transect = dplyr::first(`WFD status`))
 
+    last_station <- last_station %>% filter(Transect == which(is.na(D2GbestFitResults$D2G)))
+
+    if (all(last_station$last_transect %in% c("Good", "High"))) {
+      summaryOutput$type <-
+        "area based on at least one transect reaching good at last station"
+      summaryOutput$sign <- NA
+    } else {
+      summaryOutput$type <- "minimal area"
+      summaryOutput$sign <- ">"
+    }
+
+    mini_dist_good <- data %>%
+      group_by(Transect) %>%
+      dplyr::summarise(mini_dist_good = max(Distance))
+
+    D2GbestFitResults$D2G[is.na(D2GbestFitResults$D2G)] <-
+      mini_dist_good$mini_dist_good[which(is.na(D2GbestFitResults$D2G))]
+
+
+
+    mini_dist_good$Transect <- as.character(mini_dist_good$Transect)
+    D2Gdistr <- dplyr::inner_join(D2Gdistr, mini_dist_good, by = "Transect")
+    D2Gdistr$D2G <- D2Gdistr$mini_dist_good
+  }
+  # Put outputs into list
   data <- list(
     summaryOutput,
     D2Gdistr,

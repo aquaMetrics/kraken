@@ -1,11 +1,12 @@
 #' Consecutive Stations
 #'
-#' Check if two consecutive station are at Good status and minimum number of
+#' Check if two consecutive stations are at Good status and minimum number of
 #' stations have been sampled.
 #'
 #' @param data Data frame with survey data
 #' @param good_moderate The EQR ratio for Good - Moderate boundary.
-#'
+#' @param method Type of method used to analyse samples, either "iqi" or
+#'   "residue".
 #' @return A named list of two data frames `sample_point_checks` and
 #'   `survey_data`
 #' @export
@@ -16,7 +17,7 @@
 #' \dontrun{
 #' stations <- consecutive_stations(demo_iqi)
 #' }
-consecutive_stations <- function(data, good_moderate = 0.64) {
+consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
 
   # summaryOuput - Survey - Initial checks
   set.seed(123)
@@ -97,11 +98,12 @@ consecutive_stations <- function(data, good_moderate = 0.64) {
           Longitude = modelledLineLongitudeDeg
         )
       )
+
       bestFitBearing <- argosfilter::bearing(
-        modelledLineRad2Deg$Latitude[1],
-        modelledLineRad2Deg$Latitude[length(modelledLineRad2Deg$Latitude)],
-        modelledLineRad2Deg$Longitude[1],
-        modelledLineRad2Deg$Longitude[length(modelledLineRad2Deg$Longitude)]
+       modelledLineRad2Deg$Latitude[1],
+       modelledLineRad2Deg$Latitude[length(modelledLineRad2Deg$Latitude)],
+       modelledLineRad2Deg$Longitude[1],
+       modelledLineRad2Deg$Longitude[length(modelledLineRad2Deg$Longitude)]
       )
 
       if ((bestFitBearing < 0) & (is.na(bestFitBearing) <- FALSE)) {
@@ -127,7 +129,11 @@ consecutive_stations <- function(data, good_moderate = 0.64) {
       geoDf <- cbind(Bearing = bestFitBearing, Distance = Distances)
 
       # Find distance to Good based on 2 consecutive station rule --------------
+      if(method == "residue") {
+      r <- rle(innerTransect$IQI < good_moderate)
+      } else {
       r <- rle(innerTransect$IQI >= good_moderate)
+      }
       reducedSamplingD2G <- NA
       s <- NULL
       for (j in 1:length(r$values)) {
@@ -195,13 +201,19 @@ consecutive_stations <- function(data, good_moderate = 0.64) {
   testOutput <- dplyr::ungroup(testOutput)
 
   # Calculate class ----------------------------------------------------------
+  if(method == "residue") {
+    testOutput$`WFD status` <- "unclassifiable"
+    testOutput$`WFD status`[testOutput$IQI < good_moderate] <- "Pass"
+    testOutput$`WFD status`[testOutput$IQI >= good_moderate] <- "Fail"
+  } else {
+
   testOutput$`WFD status` <- "unclassifiable"
   testOutput$`WFD status`[testOutput$IQI >= 0.75] <- "High"
   testOutput$`WFD status`[testOutput$IQI < 0.75] <- "Good"
   testOutput$`WFD status`[testOutput$IQI < good_moderate] <- "Moderate"
   testOutput$`WFD status`[testOutput$IQI < 0.44] <- "Poor"
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
-
+  }
   # Filter columns to only required columns
   testOutput <- dplyr::select(
     testOutput,
@@ -221,8 +233,20 @@ consecutive_stations <- function(data, good_moderate = 0.64) {
     .data$`WFD status`
   )
 
+  # Remove all IQI that are missing/NA.
+  testOutput <- testOutput[!is.na(testOutput$IQI), ]
+
+  # For each transect, if cage edge (0m) station is NA (not sampled), then
+  # remove cage edge station
+  # testOutput <- purrr::map_df(unique(testOutput$Transect), function(transect) {
+  #   transect_data <- testOutput[testOutput$Transect == transect, ]
+  #   transect_data <- dplyr::arrange(transect_data, Distance)
+  #   if(is.na(transect_data$IQI[1])) {
+  #     transect_data <- transect_data[2:nrow(transect_data), ]
+  #   }
+  #   return(transect_data)
+  # })
   data <- list(summaryOutput, testOutput)
   names(data) <- c("sample_point_checks", "survey_data")
   return(data)
-
 }
