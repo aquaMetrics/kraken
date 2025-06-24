@@ -8,7 +8,6 @@ create_map <- function(data, areas, method) {
   # Calculate area without overrides
   ellipse <- areas$ellipse
   polygon <- areas$polygon
-  browser()
   if (method == "iqi") {
     my_colors <- data.frame(colour = c(
       "#d7191c",
