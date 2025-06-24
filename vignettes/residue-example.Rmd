@@ -21,7 +21,8 @@ Export data from fishfarm database as .csv file. Save locally and use the 'Impor
 
 ```{r data}
 library(kraken)
-library(tidyverse)
+library(dplyr)
+library(tidyr)
 
 test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
 
