@@ -10,6 +10,9 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
+library(kraken)
+library(dplyr)
+library(tidyr)
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning =  FALSE)
 knitr::opts_chunk$set(message = FALSE)
@@ -20,17 +23,13 @@ knitr::opts_chunk$set(message = FALSE)
 Export data from fishfarm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environmment pane to import data or use `read.csv()` funtion and paste in file path - but replace  '\' with '/' in the path.
 
 ```{r data}
-library(kraken)
-library(dplyr)
-library(tidyr)
-
 test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
 
 # Filter data for my particular farm/date of interest
-test_data <- filter(test_data, Site.ID == "BELL1")
+test_data <- dplyr::filter(test_data, Site.ID == "BELL1")
 
 # Select only the columns needed for calculations
-test_data <- select(test_data,
+test_data <- dplyr::select(test_data,
   "Survey_date" = Survey.Date,
   "MCFF" = Site.ID,
   Transect,
