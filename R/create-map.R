@@ -10,11 +10,11 @@ create_map <- function(data, areas, method) {
   polygon <- areas$polygon
   if (method == "iqi") {
     my_colors <- data.frame(colour = c(
-      "#d7191c",
-      "#fdae61",
-      "#fecc5c",
-      "#abdda4",
-      "#2b83ba"
+      "#d8181c",
+      "#fe8c01",
+      "#f5cc0a",
+      "#a5d22d",
+      "#4682b8"
     ), status = c(
       "Bad",
       "Poor",
@@ -24,8 +24,8 @@ create_map <- function(data, areas, method) {
     ))
   } else {
     my_colors <- data.frame(colour = c(
-      "#d7191c",
-      "#abdda4"
+      "#d8181c",
+      "#a5d22d",
     ), status = c(
       "Fail",
       "Pass"
