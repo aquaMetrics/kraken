@@ -52,7 +52,7 @@ test_data <- tidyr::pivot_longer(test_data,
 
 Run data through calculations.
 
-```{r data}
+```{r run-kraken}
 output <- kraken::kraken(test_data, good_moderate = 768, method = "residue", loess = TRUE)
 
 # Or to keep on same scale as IQI create a ratio
@@ -65,7 +65,7 @@ output <- kraken::kraken(test_data, good_moderate = 768, method = "residue", loe
 
 ## Map
 
-```{r data}
+```{r map}
 
 map <- output$object[output$question == "map"]
 map
@@ -77,7 +77,7 @@ map
 Need to create a plot of the regression line based on the optimal model fitted...
 Bit complicated...find which model has been used for each transect
 
-```{r}
+```{r model}
 
 model <- output$object[output$question == "model_info"]
 model
