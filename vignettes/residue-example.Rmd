@@ -53,7 +53,10 @@ test_data <- tidyr::pivot_longer(test_data,
 Run data through calculations.
 
 ```{r run-kraken}
-output <- kraken::kraken(test_data, good_moderate = 768, method = "residue", loess = TRUE)
+output <- kraken::kraken(test_data,
+                         good_moderate = 768, 
+                         method = "residue", 
+                         loess = TRUE)
 
 # Or to keep on same scale as IQI create a ratio
 # Need argument to swtich between method and ratio/absolute value?
