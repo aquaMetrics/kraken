@@ -25,7 +25,7 @@ create_map <- function(data, areas, method) {
   } else {
     my_colors <- data.frame(colour = c(
       "#d8181c",
-      "#a5d22d",
+      "#a5d22d"
     ), status = c(
       "Fail",
       "Pass"
