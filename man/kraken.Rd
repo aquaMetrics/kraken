@@ -16,7 +16,8 @@ kraken(
   overrideBearing4 = NA,
   loess = FALSE,
   hera_format = FALSE,
-  good_moderate = 0.64
+  good_moderate = 0.64,
+  method = "iqi"
 )
 }
 \arguments{
@@ -43,6 +44,9 @@ kraken(
 \item{hera_format}{Flag if import data in 'hera' format}
 
 \item{good_moderate}{Good-Moderate boundary value}
+
+\item{method}{Type of method used to analyse samples either 'iqi' or
+'residue'.}
 }
 \value{
 Data frame contain 8 variables.
