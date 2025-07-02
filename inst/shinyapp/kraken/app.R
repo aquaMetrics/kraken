@@ -52,7 +52,6 @@ server <- function(input, output) {
 
     input_data <- dplyr::select(data, question, response)
 
-   browser()
     missing <- is.na(any(input_data$response == ""))
     validation <- data.frame(
       "question" = "Missing values",
