@@ -1034,6 +1034,7 @@ probability_non_linear <- function(data,
   D2GbestFitResults <- D2GbestFitResults[-1, ]
   status <- "BeenRun"
   # If distance to good is NA - set to last station (minimal area of impact)
+
   if (any(is.na(D2GbestFitResults$D2G))) {
     # last station in transect is good?
     last_station <- data %>%
@@ -1059,11 +1060,9 @@ probability_non_linear <- function(data,
     D2GbestFitResults$D2G[is.na(D2GbestFitResults$D2G)] <-
       mini_dist_good$mini_dist_good[which(is.na(D2GbestFitResults$D2G))]
 
-
-
     mini_dist_good$Transect <- as.character(mini_dist_good$Transect)
     D2Gdistr <- dplyr::inner_join(D2Gdistr, mini_dist_good, by = "Transect")
-    D2Gdistr$D2G <- D2Gdistr$mini_dist_good
+    D2Gdistr$D2G[is.na(D2Gdistr$D2G)] <- D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2G)]
   }
   # Put outputs into list
   data <- list(
