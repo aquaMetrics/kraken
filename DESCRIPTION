@@ -1,7 +1,7 @@
 Package: kraken
 Type: Package
 Title: Assess Size of the Mixing Zone Ellipse
-Version: 0.2.3
+Version: 0.3.0
 Authors@R: c(
   person("Tim", "Foster", email = "tim.foster@sepa.org.uk",
   role = c("ctb", "cre")),
