@@ -1048,7 +1048,7 @@ probability_non_linear <- function(data,
     last_station <- last_station %>%
       dplyr::filter(Transect == which(is.na(D2GbestFitResults$D2G)))
     if (all(last_station$last_transect %in% c("Good", "High")) &
-        last_station$last_station > 6) {
+        all(last_station$last_station > 6)) {
       summaryOutput$type <-
         paste0("Area based on transect ",
                paste0((last_station$Transect), collapse = " & ") ,
