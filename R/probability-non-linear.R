@@ -14,7 +14,7 @@
 #' @export
 #' @importFrom stats AIC predict
 #' @importFrom rlang .data
-#' @importFrom dplyr mutate group_by ungroup n select
+#' @importFrom dplyr mutate group_by ungroup n select arrange
 #' @importFrom drc drm drmc L.3 L.4 L.5 LL.2 LL.3 LL.3u LL.4 LL.5 W1.2 W1.3 W1.4 W2.2 W2.3 W2.4 BC.4 BC.5 LL2.2 LL2.3 LL2.3u LL2.4 LL2.5 AR.2 AR.3 MM.2 MM.3
 #' @importFrom hexbin hexbin hcell2xy
 #' @examples
@@ -1033,23 +1033,29 @@ probability_non_linear <- function(data,
   D2Gdistr <- D2Gdistr[-1, ]
   D2GbestFitResults <- D2GbestFitResults[-1, ]
   status <- "BeenRun"
-  # If distance to good is NA - set to last station (minimal area of impact)
 
+  # If distance to good is NA - set to last station (minimal area of impact)
   if (any(is.na(D2GbestFitResults$D2G))) {
     # last station in transect is good?
     last_station <- data %>%
       group_by(Transect) %>%
       dplyr::arrange(Transect, desc(Station)) %>%
-      dplyr::summarise(last_transect = dplyr::first(`WFD status`))
+      dplyr::summarise(last_transect = dplyr::first(`WFD status`),
+                       last_station =  dplyr::first(`Station`))
 
-    last_station <- last_station %>% filter(Transect == which(is.na(D2GbestFitResults$D2G)))
+     D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
 
-    if (all(last_station$last_transect %in% c("Good", "High"))) {
+    last_station <- last_station %>%
+      dplyr::filter(Transect == which(is.na(D2GbestFitResults$D2G)))
+    if (all(last_station$last_transect %in% c("Good", "High")) &
+        last_station$last_station > 6) {
       summaryOutput$type <-
-        "area based on at least one transect reaching good at last station"
+        paste0("Area based on transect ",
+               paste0((last_station$Transect), collapse = " & ") ,
+               " reaching good at last station")
       summaryOutput$sign <- NA
     } else {
-      summaryOutput$type <- "minimal area"
+      summaryOutput$type <- "Minimal footprint area"
       summaryOutput$sign <- ">"
     }
 
@@ -1063,6 +1069,7 @@ probability_non_linear <- function(data,
     mini_dist_good$Transect <- as.character(mini_dist_good$Transect)
     D2Gdistr <- dplyr::inner_join(D2Gdistr, mini_dist_good, by = "Transect")
     D2Gdistr$D2G[is.na(D2Gdistr$D2G)] <- D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2G)]
+    D2Gdistr$D2Ghist[is.na(D2Gdistr$D2Ghist)] <- D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2Ghist)]
   }
   # Put outputs into list
   data <- list(
