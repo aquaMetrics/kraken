@@ -20,7 +20,7 @@ test_that("test kraken works", {
   demo_iqi$IQI[7:9] <- 0.62
   test_minimal <- kraken(demo_iqi)
   testthat::expect_true(any(test_minimal$response == ">"))
-  testthat::expect_true(any(test_minimal$response == "minimal area"))
+  testthat::expect_true(any(test_minimal$response == "Minimal footprint area"))
 
 
   # Test if one missing IQI scores at station 2
