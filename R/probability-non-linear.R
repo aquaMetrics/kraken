@@ -1046,7 +1046,7 @@ probability_non_linear <- function(data,
      D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
 
     last_station <- last_station %>%
-      dplyr::filter(Transect == which(is.na(D2GbestFitResults$D2G)))
+      dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
     if (all(last_station$last_transect %in% c("Good", "High")) &
         all(last_station$last_station > 6)) {
       summaryOutput$type <-
