@@ -1047,12 +1047,12 @@ probability_non_linear <- function(data,
 
     last_station <- last_station %>%
       dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
-    if (all(last_station$last_transect %in% c("Good", "High")) &
+    if (all(last_station$last_transect %in% c("Good", "High", "Pass")) &
         all(last_station$last_station > 6)) {
       summaryOutput$type <-
         paste0("Area based on transect ",
                paste0((last_station$Transect), collapse = " & ") ,
-               " reaching good at last station")
+               " attaining compliance standard at last station")
       summaryOutput$sign <- NA
     } else {
       summaryOutput$type <- "Minimal footprint area"
