@@ -7,8 +7,8 @@ test_that("test reintraid 2020 against reported results", {
     check.names = FALSE
   )
 
-  area <- assess(reintraid)
-  new_area <- assess(reintraid, loess = TRUE)
+  area <- kraken::assess(reintraid)
+  new_area <- kraken::assess(reintraid, loess = TRUE)
   # Current spotfire testing
   testthat::expect_equal(round(area[[1]], 0), 35780)
   testthat::expect_equal(round(new_area[[1]], 0), 34433)
@@ -35,6 +35,6 @@ test_that("test tisti-geo 2021 against reported results", {
   # Running with 6 stations returns reported value (in this case area at least
   # 148362 +). In this case, makes no difference on outcome of compliance.
   tisti <- tisti[-19, ] # remove station 7 from Transect 3
-  area <- assess(tisti, loess = FALSE, overrideTransect1 = 392)
+  area <- kraken::assess(tisti, loess = FALSE, overrideTransect1 = 392)
   testthat::expect_equal(round(area[[1]], 0), 148362)
 })

@@ -65,6 +65,8 @@ override <- function(data,
   overrides <- overrides[complete.cases(overrides), ]
 
   # Override values ---------------------------------------------------
+  # make sure geoDf$D2G is character
+  geoDf$D2G <- as.character(geoDf$D2G)
   geoDf <- map_df(split(geoDf, geoDf$Transect), function(transect) {
     override <- overrides[overrides$transect == unique(transect$Transect), ]
     if (nrow(override) > 0) {

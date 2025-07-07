@@ -41,8 +41,7 @@ test_that("consecutive_stations calculates columns", {
   expected <- dplyr::select(expected, -MCFF_Transect_Station)
   expected$Survey_date <- test$Survey_date
   test <- as.data.frame(test)
-  # Rounding error? Bearing isn't used in calculation so not that important to
-  # match exactly.
+  # Rounding error? very minor rounding issue - only detected in CI(?!)
   test$Bearing <- round(test$Bearing, 2)
   expected$Bearing <- round(expected$Bearing, 2)
   testthat::expect_equal(test, expected)

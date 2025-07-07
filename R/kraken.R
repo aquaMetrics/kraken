@@ -12,6 +12,8 @@
 #' @param loess Use loess model instead of fitting mulitple different models
 #' @param hera_format Flag if import data in 'hera' format
 #' @param good_moderate  Good-Moderate boundary value
+#' @param method Type of method used to analyse samples either 'iqi' or
+#'   'residue'.
 #'
 #' @return Data frame contain 8 variables.
 #' @export
@@ -34,7 +36,9 @@ kraken <- function(data,
                    overrideBearing4 = NA,
                    loess = FALSE,
                    hera_format = FALSE,
-                   good_moderate = 0.64) {
+                   good_moderate = 0.64,
+                   method = "iqi") {
+
   if (hera_format == TRUE) {
     data <- filter(data, .data$question %in% c(
       "Site Name",
@@ -167,13 +171,17 @@ kraken <- function(data,
     data$Northing <- as.numeric(data$Northing)
     data$IQI <- as.numeric(data$IQI)
   }
+
   data$survey_id <- paste0(data$MCFF, "-", as.numeric(data$Survey_date))
 
   all_output <- purrr::map_df(split(data, data$survey_id), function(data) {
-    data <- consecutive_stations(data, good_moderate = good_moderate)
+    data <- consecutive_stations(data,
+                                 good_moderate = good_moderate,
+                                 method = method)
     probs <- probability_non_linear(data$survey_data,
       loess = loess,
-      good_moderate = good_moderate
+      good_moderate = good_moderate,
+      method = method
     )
     overrides <- override(
       probs,
@@ -199,7 +207,7 @@ kraken <- function(data,
     )
     breach$response <- as.character(breach$response)
 
-    hex <- tibble::tibble(
+    breachPositionEnsemble <- tibble::tibble(
       object = list(breachs$breachPositionEnsemble),
       response = NA,
       question = "breachPositionEnsemble"
@@ -231,7 +239,7 @@ kraken <- function(data,
       names_to = "question"
     )
 
-    warning <- tidyr::pivot_longer(data$sample_point_checks,
+    warning <- tidyr::pivot_longer(breachs$surveyData,
       cols = c(
         "stationNumber",
         "twoConsecutiveStations"
@@ -241,24 +249,38 @@ kraken <- function(data,
     )
 
 
-    map <- create_map(data = data, areas = areas)
+    map <- create_map(data = data, areas = areas, method = method)
     map <- tibble::tibble(
       "question" = "map",
-      "response" = NA,
+      "response" = "object",
       "object" = list(map)
     )
 
+    context_warnings <- breachs$surveyData
+      context_warning <-
+      tibble::tibble(
+        "question" = c("sign", "area_warning"),
+        "response" = c(unique(context_warnings$sign),
+                       unique(context_warnings$type))
+      )
 
     geo_df <- tibble::tibble(
       "question" = "geoDf",
-      "response" = NA,
+      "response" = "object",
       "object" = list(overrides$geoDf)
     )
     probs <- tibble::tibble(
       "question" = "model_info",
-      "response" = NA,
+      "response" = "object",
       "object" = list(overrides$data)
     )
+
+    hex_df <- tibble::tibble(
+      "question" = "hex_df",
+      "response" = "object",
+      "object" = list(overrides$hexdfOut)
+    )
+
 
     distance_to_good <- dplyr::group_by(overrides$geoDf, .data$Transect)
     distance_to_good <- dplyr::summarise(distance_to_good,
@@ -288,10 +310,12 @@ kraken <- function(data,
       area,
       survey_data,
       polygons,
-      hex,
+      breachPositionEnsemble,
+      hex_df,
       map,
       probs,
       warnings,
+      context_warning,
       geo_df,
       distance_to_good
     )
