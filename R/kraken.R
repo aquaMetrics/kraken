@@ -172,6 +172,7 @@ kraken <- function(data,
     data$IQI <- as.numeric(data$IQI)
   }
 
+
   data$survey_id <- paste0(data$MCFF, "-", as.numeric(data$Survey_date))
 
   all_output <- purrr::map_df(split(data, data$survey_id), function(data) {
@@ -319,7 +320,11 @@ kraken <- function(data,
       geo_df,
       distance_to_good
     )
+
     output$Survey_date <- as.Date(output$Survey_date)
+
+    project_id <- paste0(data$survey_data$MCFF[1], data$survey_data$Survey_date[1])
+    Survey_date <- data$survey_data$Survey_date[1]
     output <- dplyr::mutate(output,
       sample_id = paste0(
         .data$Transect,
@@ -327,9 +332,13 @@ kraken <- function(data,
         .data$MCFF,
         as.numeric(.data$Survey_date)
       ),
-      project_id = paste0(.data$MCFF, as.numeric(.data$Survey_date)),
-      location_id = paste0(.data$MCFF, .data$Transect, .data$Station)
+      "project_id" = project_id,
+      location_id = paste0(.data$MCFF, .data$Transect, .data$Station),
+      "Survey_date" = Survey_date
     )
+
+
+
     output <- dplyr::select(output,
       .data$project_id,
       .data$location_id,

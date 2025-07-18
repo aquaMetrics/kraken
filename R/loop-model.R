@@ -66,7 +66,6 @@ new_loop_model <- function(bootstraps = NULL,
                            distance_vector = NULL,
                            bestModel = NULL) {
   models <- purrr::map_df(bootstraps, function(bootstrap) {
-     # browser()
      model <- drm(IQI ~ Distance,
       data = bootstrap,
       fct = bestModel,

@@ -21,6 +21,14 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
   # summaryOuput - Survey - Initial checks
   set.seed(123)
   stringsAsFactors <- FALSE
+
+  # If replicate values per station then return average values
+  # keep original value
+  data$original_iqi <- data$IQI
+  data <- data %>%
+    group_by(Transect, Station) %>%
+    mutate(IQI = mean(IQI))
+
   if (length(unique(data$MCFF)) > 1) {
     testOutput <- data.frame(cbind(
       Survey_date = NA,
@@ -213,6 +221,8 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
   testOutput$`WFD status`[testOutput$IQI < 0.44] <- "Poor"
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
   }
+
+  data$IQI <- data$original_iqi
   # Filter columns to only required columns
   testOutput <- dplyr::select(
     testOutput,
@@ -235,16 +245,6 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
   # Remove all IQI that are missing/NA.
   testOutput <- testOutput[!is.na(testOutput$IQI), ]
 
-  # For each transect, if cage edge (0m) station is NA (not sampled), then
-  # remove cage edge station
-  # testOutput <- purrr::map_df(unique(testOutput$Transect), function(transect) {
-  #   transect_data <- testOutput[testOutput$Transect == transect, ]
-  #   transect_data <- dplyr::arrange(transect_data, Distance)
-  #   if(is.na(transect_data$IQI[1])) {
-  #     transect_data <- transect_data[2:nrow(transect_data), ]
-  #   }
-  #   return(transect_data)
-  # })
   data <- list(summaryOutput, testOutput)
   names(data) <- c("sample_point_checks", "survey_data")
   return(data)

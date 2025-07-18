@@ -12,6 +12,16 @@ test_that("test kraken works", {
   # test_all_the_same <- kraken(demo_iqi)
   # testthat::expect_equal(test_all_the, TRUE)
 
+
+  # Ignore all missing IQI values except pen edge
+
+  # Ignore all missing IQI values except pen edge (in plot and calculation)
+
+  # May have a grey out pen edge station
+
+  # Missig IQI values after
+
+
   # Negative IQI?
   # Add error message for negative values?
 
@@ -62,12 +72,37 @@ test_that("test kraken works", {
 test_that("test kraken works for chemistry data", {
 
  # Create chemistry data with 3 replicates per station
- chem_data <- dplyr::bind_rows(kraken::demo_iqi, kraken::demo_iqi, kraken::demo_iqi)
- # jitter values to be more realistic of replicated results
- chem_data$IQI <- chem_data$IQI * 400
- chem_data$IQI <- jitter(chem_data$IQI, amount = 50)
+  test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
 
- test_chem  <- kraken(chem_data, good_moderate = 200)
+  # Filter data for my particular farm/date of interest
+  test_data <- dplyr::filter(test_data, Site.ID == "BELL1")
+
+  # Select only the columns needed for calculations
+  test_data <- dplyr::select(test_data,
+                             "Survey_date" = Survey.Date,
+                             "MCFF" = Site.ID,
+                             Transect,
+                             "Station" = Station.Order..transect.,
+                             Easting,
+                             Northing,
+                             "Embz-1" = EmBz.residues..Rep.1...ng.kg.,
+                             "Embz-2" = EmBz.residues..Rep.2..ng.kg.,
+                             "Embz-3" = EmBz.residues..Rep.3..ng.kg.
+  )
+
+  # Pivot the data into structure require for calculations
+  test_data <- tidyr::pivot_longer(test_data,
+                                   cols = c("Embz-1", "Embz-2", "Embz-3"),
+                                   names_to = "Station_id", values_to = "IQI")
+
+ test_chem  <- kraken(test_data,
+                      good_moderate = 768,
+                      method = "residue",
+                      loess = TRUE)
+
+
+
+
 
  # results <- test_chem %>%
  #   filter(question %in% c("Distance", "IQI")) %>%
@@ -82,3 +117,7 @@ test_that("test kraken works for chemistry data", {
  # hellisay 5279
 
 })
+
+
+
+
