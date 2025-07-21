@@ -6,7 +6,7 @@ test_that("test reintraid 2020 against reported results", {
     ),
     check.names = FALSE
   )
-
+  reintraid <- dplyr::select(reintraid,Northing, Easting, IQI, Transect, Station, MCFF, Survey_date)
   area <- kraken::assess(reintraid)
   new_area <- kraken::assess(reintraid, loess = TRUE)
   # Current spotfire testing
