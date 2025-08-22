@@ -6,11 +6,22 @@ test_that("test reintraid 2020 against reported results", {
     ),
     check.names = FALSE
   )
-  reintraid <- dplyr::select(reintraid,Northing, Easting, IQI, Transect, Station, MCFF, Survey_date)
+  reintraid <- dplyr::select(
+    reintraid,
+    Northing,
+    Easting,
+    Distance,
+    IQI,
+    Transect,
+    Station,
+    MCFF,
+    Survey_date
+  )
+
   area <- kraken::assess(reintraid)
+  testthat::expect_equal(round(area[[1]], 0), 35780)
   new_area <- kraken::assess(reintraid, loess = TRUE)
   # Current spotfire testing
-  testthat::expect_equal(round(area[[1]], 0), 35780)
   testthat::expect_equal(round(new_area[[1]], 0), 34433)
   # Result reported for compliance is slightly different (37070). Possibly due
   # to slight change to area calculator code since Feb 2022 or error in input

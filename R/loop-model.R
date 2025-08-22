@@ -17,7 +17,7 @@ loop_model <- function(bootstraps = NULL,
   )
 
 
-  while ((numberConverged < 500) & (xy <= length(bootstraps))) {
+  while ((numberConverged < (bootstraps / 2)) & (xy <= length(bootstraps))) {
     mLBoot <- NULL
     try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = bootstraps[[xy]],

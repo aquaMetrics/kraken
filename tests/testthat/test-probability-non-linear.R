@@ -1,4 +1,4 @@
-test_that("probability_non_linear fuinction matches outputs from Spotfire script", {
+test_that("probability_non_linear function matches outputs from Spotfire script", {
   data <- dplyr::arrange(demo_iqi, Station)
   data <- dplyr::select(data, Station, IQI, everything())
   data <- consecutive_stations(demo_iqi)
@@ -48,8 +48,7 @@ test_that("probability_non_linear fuinction matches outputs from Spotfire script
   row.names(best_fit) <- NULL
   best_fit$Transect <- as.integer(best_fit$Transect)
   best_fit$Bearing <- as.numeric(best_fit$Bearing)
-  # Slight rounding differences on operating systems - bearing has no impact on
-  # calculation
+  # Slight rounding differences on operating systems
   best_fit$Bearing <- round(best_fit$Bearing, 2)
   best_fit_test$Bearing <- round(best_fit_test$Bearing, 2)
   best_fit$Easting <- as.integer(best_fit$Easting)

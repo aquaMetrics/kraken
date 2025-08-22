@@ -2,6 +2,8 @@
 title: "Redesign"
 output: html_document
 date: "2022-09-29"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -24,7 +26,13 @@ file <- system.file("extdat",
 survey <- survey_import(file)
 
 survey_data <- survey %>%
-  filter(question %in% c("IQI", "Easting", "Northing", "Date sampled (dd/mm/yy)")) %>%
+  filter(question %in% c(
+    "IQI",
+    "Easting", 
+    "Northing",
+    "Transect",
+    "Station",
+    "Date sampled (dd/mm/yy)")) %>%
   mutate(
     location_id = sample_id,
     sample_id = paste0(sample_id, project_id)
@@ -41,48 +49,48 @@ survey_data <- survey_data %>% filter(question != "Date sampled (dd/mm/yy)")
 ### Import Access Database
 
 ```{r}
-file <- system.file("extdat",
-  "test-data/harris-iqi-data.csv",
-  package = "kraken"
-)
-
-access_data <- readr::read_csv(file, show_col_types = FALSE)
-
-access_data <- access_data %>%
-  mutate(
-    sample_id = paste0(Transect, Station, MCFF),
-    project_id = paste0(MCFF, Survey_date),
-    location_id = paste0(Transect, Station)
-  ) %>%
-  select(
-    -Footprint,
-    -Permit,
-    -site_name_survey_id,
-    -Site_Name,
-    -Site_ID,
-    -MCFF,
-    -Survey_ID,
-    -Transect,
-    -Station
-  ) %>%
-  pivot_longer(
-    cols = c(
-      -sample_id,
-      -Survey_date,
-      -project_id,
-      -location_id
-    ),
-    names_to = "question",
-    values_to = "response"
-  ) %>%
-  select(location_id,
-    project_id,
-    sample_id,
-    "date_taken" = Survey_date,
-    question,
-    response
-  ) %>%
-  mutate(response = as.character(response))
+# file <- system.file("extdat",
+#   "test-data/harris-iqi-data.csv",
+#   package = "kraken"
+# )
+# 
+# access_data <- readr::read_csv(file, show_col_types = FALSE)
+# 
+# access_data <- access_data %>%
+#   mutate(
+#     sample_id = paste0(Transect, Station, MCFF),
+#     project_id = paste0(MCFF, Survey_date),
+#     location_id = paste0(Transect, Station)
+#   ) %>%
+#   select(
+#     -Footprint,
+#     -Permit,
+#     -site_name_survey_id,
+#     -Site_Name,
+#     -Site_ID,
+#     -MCFF,
+#     -Survey_ID,
+#     -Transect,
+#     -Station
+#   ) %>%
+#   pivot_longer(
+#     cols = c(
+#       -sample_id,
+#       -Survey_date,
+#       -project_id,
+#       -location_id
+#     ),
+#     names_to = "question",
+#     values_to = "response"
+#   ) %>%
+#   select(location_id,
+#     project_id,
+#     sample_id,
+#     "date_taken" = Survey_date,
+#     question,
+#     response
+#   ) %>%
+#   mutate(response = as.character(response))
 ```
 
 Combine Data
@@ -93,8 +101,7 @@ This all becomes One Big Table (OBT)! All data is the same, columns are the
 same, data types are the same, it's boring, boring, boring.
 
 ```{r}
-
-data <- bind_rows(access_data, survey_data)
+# data <- bind_rows(access_data, survey_data)
 ```
 
 
@@ -114,24 +121,23 @@ Transect level:
 
 ```{r}
 valid <- function(data) {
-  
-  #...
+  # ...
   # map_df(split(transect), function() {
-  #   
-  #   
-  #   
+  #
+  #
+  #
   # })
   # number_of_stations <- tibble(
   #   question =  "Number of stations",
   #   response = ""
   # )
-  # 
-  # 
+  #
+  #
   # bind_rows(data, validation)
   return(data)
 }
 
-valid_data <- valid(data)
+data <- valid(survey_data)
 ```
 
 
@@ -140,29 +146,32 @@ valid_data <- valid(data)
 Need a generic function for assigning WFD status to ratio or observation...luckily we already programmed one.
 
 ```{r}
-
 wfd_status <- function(data, question) {
-  eqr <- data$response[data$question ==
-    question]
-  eqr <- eqr[!is.na(eqr)]
-  eqr <- as.numeric(eqr)
-  ## Copy from RICT??...
-  status <- rict::compare_probability(
-    a = eqr,
-    b = eqr,
-    eqr_bands =
-      c(
-        0,
-        0.47,
-        0.56,
-        0.64,
-        0.8,
-        1
-      )
-  )
+  eqr <- data[data$question ==  question, ]
+  eqr <- eqr[!is.na(eqr$response), ]
+  eqr$response <- as.numeric(eqr$response)
+  status <- purrr::map_df(split(eqr, unique(eqr$sample_id)), function(sample) {
+    # Copy from RICT...
+    class <- rict::compare_probability(
+      a = sample$response,
+      b = sample$response,
+      eqr_bands =
+        c(
+          0,
+          0.47,
+          0.56,
+          0.64,
+          0.8,
+          1
+        )
+    )
+    sample$response <- class$`Most Probable Class for Result A`
+    sample$question <- "status"
+    sample$status <- as.character(sample$response)
+    return(sample)
+  })
 
-  status <- status[, 1]
-  data$status <- status
+  data <- dplyr::bind_rows(data, status)
   return(data)
 }
 
@@ -176,17 +185,23 @@ wfd_data <- wfd_status(data,
 Add GIS attributes
 
 ```{r}
-
 gis_attributes <- function(data) {
-   bng <- sf::st_crs(
-     "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs"
-     )
-   sp <- sf::st_point(list(
-            easting[mask],
-            northing[mask]
-          ))
-        sp <- st_as_sfc(sp, crs = bng)
-        sp <- sf::st_transform(sp::CRS(SRS_string ="EPSG:4326"))
+  geo_data <- data %>%
+    filter(question == "Easting" | question == "Northing") %>%
+    distinct()
+
+  geo_data <- pivot_wider(
+    geo_data,
+    names_from = question,
+    values_from = response
+  )
+
+  lat_lon <- kraken:::convert_coordinates(
+    geo_data$Easting,
+    geo_data$Northing
+  )
+  lat_lon$sample_id <- geo_data$sample_id
+  data <- inner_join(data, lat_lon, by = join_by(sample_id))
   return(data)
 }
 
@@ -197,7 +212,25 @@ gis_data <- gis_attributes(wfd_data)
 
 ```{r}
 distance <- function(data) {
+   transect_data <- data %>%
+    filter(question == "Transect") %>%
+    distinct()
+
+  transect_data <- pivot_wider(
+    transect_data,
+    names_from = question,
+    values_from = response
+  )
+  
+  
+  purrr::map_df(split(data, data$Transect), function(transect){
+    
+    
+     
   return(data)
+  })
+  
+ 
 }
 
 distance_data <- distance(gis_data)

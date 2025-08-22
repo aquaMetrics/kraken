@@ -28,7 +28,7 @@ test_that("test kraken works", {
   # One transect doesn't reach good status
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[7:9] <- 0.62
-  test_minimal <- kraken(demo_iqi)
+  test_minimal <- kraken(demo_iqi, niter = 10)
   testthat::expect_true(any(test_minimal$response == ">"))
   testthat::expect_true(any(test_minimal$response == "Minimal footprint area"))
 
@@ -36,13 +36,13 @@ test_that("test kraken works", {
   # Test if one missing IQI scores at station 2
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[2] <- NA
-  missing_station_2 <- kraken(demo_iqi)
+  missing_station_2 <- kraken(demo_iqi, niter = 10)
   # missing_station_2$object[missing_station_2$question == "map"]
 
   # Test if one missing IQI scores at pen edge (station 1)
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[1] <- NA
-  missing_station_1 <- kraken(demo_iqi)
+  missing_station_1 <- kraken(demo_iqi,  niter = 10)
 
   # Test all pen edge missing IQI scores
   demo_iqi <- kraken::demo_iqi
@@ -50,7 +50,7 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- NA
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
-  all_pen_edge_missing <- kraken(demo_iqi)
+  all_pen_edge_missing <- kraken(demo_iqi, niter = 10)
   # all_pen_edge_missing$object[all_pen_edge_missing$question == "map"]
 
   # Test all pen edge missing IQI scores and reduced sampling
@@ -63,7 +63,7 @@ test_that("test kraken works", {
   demo_iqi <- demo_iqi[c(1,10,17,24,7,8,13,14,21,22,27,28), ]
   # remove other values
 
-  reduced_pen_edge_missing <- kraken(demo_iqi)
+  reduced_pen_edge_missing <- kraken(demo_iqi, niter = 10)
   # reduced_pen_edge_missing$object[reduced_pen_edge_missing$question == "map"]
 
 })
