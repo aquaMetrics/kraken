@@ -49,7 +49,7 @@ data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
   package = "kraken"
 ), check.names = FALSE)
 
-result <- kraken(data, loess = TRUE, good_moderate = 0.60)
+result <- kraken(data, loess = TRUE, good_moderate = 0.60, niter = 10)
 ```
 
 
@@ -64,10 +64,10 @@ data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
   package = "kraken"
 ), check.names = FALSE)
 
-result <- kraken(data, loess = FALSE, good_moderate = 0.60)
+result <- kraken(data, loess = FALSE, good_moderate = 0.60, niter = 10)
 distances <- result %>% filter(question == "breachDistanceBestFit")
 distances$transect <- 1:nrow(distances)
-knitr::kable(select(distances, location_id, question, response) %>% mutate(location_id = gsub(pattern = "NA", replacement = "", .$location_id) ))
+knitr::kable(dplyr::select(distances, location_id, question, response) %>% mutate(location_id = gsub(pattern = "NA", replacement = "", .$location_id) ))
 
 breach <- result %>%  filter(question == "breachPositionEnsemble")
 breach <- breach$object[[1]]
@@ -116,7 +116,7 @@ data <- consecutive_stations(data)
 probs <- probability_non_linear(data$survey_data, loess = TRUE)
 overrides <- override(probs)
 breachs <- breach(overrides)
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 
 # Convert survey data to spatial
 data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
@@ -306,10 +306,10 @@ knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
   col.names = "Adjacent"
 )
 
-probs <- probability_non_linear(data$survey_data)
+probs <- probability_non_linear(data$survey_data, niter = 10)
 overrides <- override(probs)
 breachs <- breach(overrides)
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 
 
 # Convert survey data to spatial
@@ -383,10 +383,10 @@ knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
   col.names = "Adjacent"
 )
 
-probs <- suppressWarnings(probability_non_linear(data$survey_data))
+probs <- suppressWarnings(probability_non_linear(data$survey_data, niter = 10))
 overrides <- override(probs)
 breachs <- breach(overrides)
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 
 
 # Convert survey data to spatial
@@ -465,7 +465,7 @@ knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
 probs <- probability_non_linear(data$survey_data, loess = TRUE)
 overrides <- override(probs)
 breachs <- breach(overrides)
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 
 # Convert survey data to spatial
 data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
@@ -519,7 +519,7 @@ knitr::kable(data$survey_data[data$survey_data$Transect == 1, c("Transect", "Sta
 **However this rule is not yet applied in the model/app?**. Note all stations on the transect 1 are Good status but 3rd station is not 150-300 even though 2nd station is less than 100m.
 
 ```{r, results='hide', fig.keep='all'}
-probs <- probability_non_linear(data$survey_data, loess = TRUE)
+probs <- probability_non_linear(data$survey_data, loess = TRUE, niter = 10)
 overrides <- override(probs)
 breachs <- breach(overrides)
 
@@ -531,7 +531,7 @@ knitr::kable(breachs$breachPositionBestFit)
 
 ```{r, results='hide', fig.keep='all'}
 
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 
 # Convert survey data to spatial
 data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
@@ -594,7 +594,7 @@ start <- Sys.time()
 ```
 
 ```{r, results='hide'}
-probs <- probability_non_linear(data$survey_data, loess = TRUE)
+probs <- probability_non_linear(data$survey_data, loess = TRUE, niter =10)
 ```
 
 ```{r}
@@ -602,7 +602,7 @@ end <- Sys.time()
 end - start
 overrides <- override(probs)
 breachs <- breach(overrides)
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 ```
 
 ```{r}
@@ -645,7 +645,7 @@ start <- Sys.time()
 ```
 
 ```{r, results='hide'}
-probs <- probability_non_linear(data$survey_data)
+probs <- probability_non_linear(data$survey_data,  niter = 10)
 ```
 
 ```{r}
@@ -653,7 +653,7 @@ end <- Sys.time()
 end - start
 overrides <- override(probs)
 breachs <- breach(overrides)
-areas <- area(breachs)
+areas <- kraken::area(breachs)
 ```
 
 ```{r}
