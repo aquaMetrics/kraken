@@ -17,7 +17,7 @@ loop_model <- function(bootstraps = NULL,
   )
 
 
-  while ((numberConverged < 500) & (xy <= length(bootstraps))) {
+  while ((numberConverged < (bootstraps / 2)) & (xy <= length(bootstraps))) {
     mLBoot <- NULL
     try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = bootstraps[[xy]],
@@ -66,7 +66,6 @@ new_loop_model <- function(bootstraps = NULL,
                            distance_vector = NULL,
                            bestModel = NULL) {
   models <- purrr::map_df(bootstraps, function(bootstrap) {
-     # browser()
      model <- drm(IQI ~ Distance,
       data = bootstrap,
       fct = bestModel,

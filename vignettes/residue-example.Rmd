@@ -13,6 +13,8 @@ editor_options:
 library(kraken)
 library(dplyr)
 library(tidyr)
+library(ggplot2)
+library(drc)
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning =  FALSE)
 knitr::opts_chunk$set(message = FALSE)
@@ -53,16 +55,14 @@ test_data <- tidyr::pivot_longer(test_data,
 Run data through calculations.
 
 ```{r run-kraken}
+
+test_data$IQI <- as.numeric(test_data$IQI)
+
 output <- kraken::kraken(test_data,
                          good_moderate = 768, 
                          method = "residue", 
-                         loess = TRUE)
+                         loess = TRUE, niter = 10)
 
-# Or to keep on same scale as IQI create a ratio
-# Need argument to swtich between method and ratio/absolute value?
-# test_data$residue <- test_data$IQI 
-# test_data$IQI <- 768 / test_data$IQI
-# output <- kraken::kraken(test_data, good_moderate = 1, method = "residue")
 
 ```
 
@@ -91,16 +91,43 @@ Is the model struggling to fit? Wasn't a problem with earlier test data?
 
 ```{r plots}
 # pivot output
-# need unique test id!!!
-# data <- output %>% dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
-# data <- data %>% filter(response == "BELL1 - 1") 
+data <- output %>%  dplyr::filter(grepl("BELL11", location_id))
+data <- data %>% dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
+
+
 # data$results_id <- sort(rep(1:7,3))
+# 
+# data <- distinct(data)
+# data$result_id <- 1:63
 # data <- pivot_wider(data, names_from = question, values_from = response)
+# data <- data %>% filter(MCFF_Transect == "BELL1 - 1")
+# data$IQI <- as.numeric(data$IQI)
+# data$Distance <- as.numeric(data$Distance)
 # 
 # 
+# # new data with predictions
+# ggplot(aes(Distance,IQI),data = data) + 
+#   geom_smooth(method=drm, method.args = list(fct = MM.3()), se = FALSE) +
+#   ylab("Emmamectin PPM") +
+#   ggplot2::ggtitle(paste0("Transect: ", unique(data$MCFF_Transect)))
 # 
-# drm(IQI~Distance, Transect, data=, fct=MM.3())
-# drc::MM.3()
+# qplot(Distance,IQI,data = data) + 
+#   geom_smooth(method=drm, method.args = list(fct = MM.3()), se = FALSE) +
+#   ylab("Emmamectin PPM") +
+#   ggplot2::ggtitle(paste0("Transect: ", unique(data$MCFF_Transect)))
+# 
+# 
+# drm(IQI ~ Distance,
+#       data = data,
+#       fct = MM.3(),
+#       type = "continuous",
+#       control = drmc(
+#         noMessage = TRUE,
+#         warnVal = -1,
+#         trace = FALSE,
+#         otrace = FALSE
+#       )
+#     )
 
 
 ```

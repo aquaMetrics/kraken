@@ -9,6 +9,7 @@
 #' @param good_moderate The EQR ratio for Good - Moderate boundary.
 #' @param method Type of method used to analyse samples, either "iqi" or
 #'   "residue".
+#' @param niter Number of bootstrap resamples must be even number
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
 #'   hexdfOut.
 #' @export
@@ -25,7 +26,8 @@
 probability_non_linear <- function(data,
                                    loess = FALSE,
                                    good_moderate = 0.64,
-                                   method = "iqi") {
+                                   method = "iqi",
+                                   niter = 1000) {
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
   #   2 Improved 2 station rule method
@@ -212,8 +214,8 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_min,
           Northing = northing_min,
-          D2G = rep(NA, 500),
-          D2Ghist = rep(NA, 500),
+          D2G = rep(NA, (niter / 2)),
+          D2Ghist = rep(NA, (niter / 2 )),
           D2Gtype = "No result"
         ))
       )
@@ -291,8 +293,8 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_reduced,
           Northing = northing_reduced,
-          D2G = rep(0, 500),
-          D2Ghist = rep(reducedSamplingD2G, 500),
+          D2G = rep(0, (niter /2)),
+          D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
           D2Gtype = "Reduced analysis"
         ))
       )
@@ -372,8 +374,8 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_reduced,
           Northing = northing_reduced,
-          D2G = rep(0, 500),
-          D2Ghist = rep(reducedSamplingD2G, 500),
+          D2G = rep(0, (niter / 2)),
+          D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
           D2Gtype = "Reduced analysis"
         ))
       )
@@ -696,7 +698,6 @@ probability_non_linear <- function(data,
           return(data2[, ])
         }
       }
-      niter <- 1000 # Number of bootstrap resamples
       mL4List <- (rep(list(mL4), niter))
       bootDRCdata <- lapply((mL4List), bootDRC)
 
@@ -715,7 +716,7 @@ probability_non_linear <- function(data,
       # if (i == "Bellister - 1") {
       #   browser()
       # }
-      while ((numberConverged < 500) & (xy <= length(bootDRCdata))) {
+      while ((numberConverged < (niter / 2)) & (xy <= length(bootDRCdata))) {
         mLBoot <- NULL
         if (loess == FALSE) {
           try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
@@ -920,8 +921,8 @@ probability_non_linear <- function(data,
               Bearing = unique(innerTransect$Bearing),
               Easting = easting_min,
               Northing = northing_min,
-              D2G = rep(NA, 500),
-              D2Ghist = rep(NA, 500),
+              D2G = rep(NA, (niter / 2)),
+              D2Ghist = rep(NA, (niter / 2)),
               D2Gtype = "No result"
             ))
           )
@@ -993,8 +994,8 @@ probability_non_linear <- function(data,
               Bearing = unique(innerTransect$Bearing),
               Easting = Easting,
               Northing = Northing,
-              D2G = rep(0, 500),
-              D2Ghist = rep(reducedSamplingD2G, 500),
+              D2G = rep(0, (niter / 2)),
+              D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
               D2Gtype = "Reduced analysis"
             ))
           )
