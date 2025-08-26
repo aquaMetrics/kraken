@@ -24,11 +24,11 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
 
   # If replicate values per station then return average values
   # keep original value
-  data$original_iqi <- data$IQI
-  data <- data %>%
-    group_by(Transect, Station) %>%
-    mutate(IQI = mean(IQI))
-  data <- ungroup(data)
+  # data$original_iqi <- data$IQI
+  # data <- data %>%
+  #   group_by(Transect, Station) %>%
+  #   mutate(IQI = mean(IQI))
+  # data <- ungroup(data)
 
   if (length(unique(data$MCFF)) > 1) {
     testOutput <- data.frame(cbind(
@@ -223,7 +223,7 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
   }
 
-  data$IQI <- data$original_iqi
+  # data$IQI <- data$original_iqi
   # Filter columns to only required columns
   testOutput <- dplyr::select(
     testOutput,
