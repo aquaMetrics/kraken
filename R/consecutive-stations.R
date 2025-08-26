@@ -28,6 +28,7 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
   data <- data %>%
     group_by(Transect, Station) %>%
     mutate(IQI = mean(IQI))
+  data <- ungroup(data)
 
   if (length(unique(data$MCFF)) > 1) {
     testOutput <- data.frame(cbind(
