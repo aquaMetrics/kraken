@@ -6,16 +6,6 @@ test_that("test reintraid 2020 against reported results", {
     ),
     check.names = FALSE
   )
-  reintraid <- dplyr::select(
-    reintraid,
-    Northing,
-    Easting,
-    IQI,
-    Transect,
-    Station,
-    MCFF,
-    Survey_date
-  )
 
   stations <- kraken::consecutive_stations(reintraid)
   area <- kraken::assess(reintraid)
