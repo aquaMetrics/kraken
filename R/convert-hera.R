@@ -116,12 +116,19 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     "response" = NA,
     "object" = list(distance_to_good)
   )
-  warnings <- tibble::tibble(
-    "question" = "ellipse_warnings",
-    "response" = NA,
-    "object" = list(area$warnings)
-  )
-
+  if (all(is.null(area$warnings))) {
+    warnings <- tibble::tibble(
+      "question" = "ellipse_warnings",
+      "response" = NA,
+      "object" = NA
+    )
+  } else {
+    warnings <- tibble::tibble(
+      "question" = "ellipse_warnings",
+      "response" = NA,
+      "object" = list(area$warnings)
+    )
+  }
   output <- dplyr::bind_rows(
     warning,
     breach,
