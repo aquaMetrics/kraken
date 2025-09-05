@@ -143,7 +143,15 @@ probability_non_linear <- function(data,
     }
 
     # 2 Build initial model ----------------------------------------------------
-
+    # Errors from drc package while using 'try' during model fitting are
+    # difficult to suppress so using sink() to divert R output to system
+    # file.
+    output_path <- paste0(
+      system.file(package = "kraken"),
+      "/extdat/output.txt"
+    )
+    zz <- file(output_path, open = "wt")
+    sink(zz, type = "message")
     try(mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = innerTransect,
       fct = MM.3(),
@@ -166,6 +174,8 @@ probability_non_linear <- function(data,
         otrace = FALSE
       )
     ))), silent = TRUE)
+    sink(type = "message")
+    close(zz)
     # Calculate Easting and Northing for re-use later
     easting_min <- unique(
       innerTransect$Easting[innerTransect$Distance ==
@@ -185,9 +195,6 @@ probability_non_linear <- function(data,
 
     if ((numberOfStations < 7) & (is.na(reducedSamplingD2G) == TRUE)) {
       # Situation 1 - Insufficient data to determine any distance to Good
-      message(
-        "Situation 1 - Insufficient data to determine any distance to Good"
-      )
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -215,7 +222,7 @@ probability_non_linear <- function(data,
           Easting = easting_min,
           Northing = northing_min,
           D2G = rep(NA, (niter / 2)),
-          D2Ghist = rep(NA, (niter / 2 )),
+          D2Ghist = rep(NA, (niter / 2)),
           D2Gtype = "No result"
         ))
       )
@@ -264,10 +271,8 @@ probability_non_linear <- function(data,
       hexdf <- rbind(hexdf, surveyData)
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((numberOfStations < 7) & (is.na(reducedSamplingD2G) == FALSE)) {
-      message(
-        "Situation 2 - Insufficient data for regression model, but do have
-      reduced monitoring result to use"
-      )
+      # Situation 2 - Insufficient data for regression model, but do have
+      # reduced monitoring result to use
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -293,7 +298,7 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_reduced,
           Northing = northing_reduced,
-          D2G = rep(0, (niter /2)),
+          D2G = rep(0, (niter / 2)),
           D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
           D2Gtype = "Reduced analysis"
         ))
@@ -346,9 +351,8 @@ probability_non_linear <- function(data,
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((exists("mL4") == FALSE) &
       (is.na(reducedSamplingD2G) == FALSE)) {
-      message(
-        "Situation 3 - Unable to fit regression model, but do have reduced monitoring result to use"
-      )
+      # Situation 3 - Unable to fit regression model, but do have reduced
+      # monitoring result to use
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -529,19 +533,16 @@ probability_non_linear <- function(data,
       } else if (bestModel$Params == 4) {
         if (((modelComp3params$IC - 10) < bestModel$IC) &
           (is.na(modelComp3params$IC) == FALSE)) {
-          message("Replace with 3 param model")
           modelComp <- modelComp3params
           ICresult <- "Best fitting model replaced by simpler one"
         }
       } else if (bestModel$Params == 5) {
         if (((modelComp3params$IC - 10) < bestModel$IC) &
           (is.na(modelComp3params$IC) == FALSE)) {
-          message("Replace with 3 param model")
           modelComp <- modelComp3params
           ICresult <- "Best fitting model replaced by simpler one"
         } else if (((modelComp4params$IC - 10) < bestModel$IC) &
           (is.na(modelComp4params$IC) == FALSE)) {
-          message("Replace with 4 param model")
           modelComp <- modelComp4params
           ICresult <- "Best fitting model replaced by simpler one"
         }
@@ -718,6 +719,15 @@ probability_non_linear <- function(data,
       # }
       while ((numberConverged < (niter / 2)) & (xy <= length(bootDRCdata))) {
         mLBoot <- NULL
+        # Errors from drc package while using 'try' during model fitting are
+        # difficult to suppress so using sink() to divert R output to system
+        # file.
+        output_path <- paste0(
+          system.file(package = "kraken"),
+          "/extdat/output.txt"
+        )
+        zz <- file(output_path, open = "wt")
+        sink(file = zz, type = "message")
         if (loess == FALSE) {
           try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
             data = as.data.frame(bootDRCdata[xy]),
@@ -735,7 +745,8 @@ probability_non_linear <- function(data,
             data = as.data.frame(bootDRCdata[xy])
           ))), silent = TRUE)
         }
-
+        sink(type = "message")
+        close(zz)
         if (is.null(mLBoot) == FALSE) {
           convergedCount[xy] <- 1
           ypred_mLBoot[[xy]] <- data.frame(
@@ -1041,19 +1052,23 @@ probability_non_linear <- function(data,
     last_station <- data %>%
       group_by(Transect) %>%
       dplyr::arrange(Transect, desc(Station)) %>%
-      dplyr::summarise(last_transect = dplyr::first(`WFD status`),
-                       last_station =  dplyr::first(`Station`))
+      dplyr::summarise(
+        last_transect = dplyr::first(`WFD status`),
+        last_station = dplyr::first(`Station`)
+      )
 
-     D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
+    D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
 
     last_station <- last_station %>%
       dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
     if (all(last_station$last_transect %in% c("Good", "High", "Pass")) &
-        all(last_station$last_station > 6)) {
+      all(last_station$last_station > 6)) {
       summaryOutput$type <-
-        paste0("Area based on transect ",
-               paste0((last_station$Transect), collapse = " & ") ,
-               " attaining compliance standard at last station")
+        paste0(
+          "Area based on transect ",
+          paste0((last_station$Transect), collapse = " & "),
+          " attaining compliance standard at last station"
+        )
       summaryOutput$sign <- NA
     } else {
       summaryOutput$type <- "Minimal footprint area"
@@ -1080,6 +1095,5 @@ probability_non_linear <- function(data,
     hexdfOut
   )
   names(data) <- c("data", "geoDf", "geoDfBestFit", "hexdfOut")
-
   return(data)
 }
