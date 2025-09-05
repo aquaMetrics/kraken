@@ -22,7 +22,7 @@ knitr::opts_chunk$set(message = FALSE)
 
 ## Data
 
-Export data from fishfarm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environmment pane to import data or use `read.csv()` funtion and paste in file path - but replace  '\' with '/' in the path.
+Export data from fish farm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environment pane to import data or use `read.csv()` function and paste in file path - but replace  '\' with '/' in the path.
 
 ```{r data}
 test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))

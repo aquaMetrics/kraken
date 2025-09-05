@@ -37,8 +37,7 @@ Below is a summary of long-term and short-term development ideas to make running
 
 ### New warnings and messages needed
 
-- Messages for 'additional', '555' or '999' transects? i.e. Reference or additional sampling>?
-- Warnings if no ellipse can be calculated (see below for un-coded failures modes)
+- Messages for 'additional', '555' or '999' transects? i.e. Reference or additional sampling?
 
 ### No good reporting output from kraken - makes testing, developing, and debugging hard.
 
