@@ -7,28 +7,38 @@
 probability_non_linear(
   data,
   loess = FALSE,
-  good_moderate = 0.64,
-  method = "iqi"
+  pass_fail = 0.64,
+  method = "iqi",
+  n_try = 1000
 )
 }
 \arguments{
-\item{data}{The named data frame `survey_data` from `consecutive_station()` function. See examples.}
+\item{data}{The named data frame `survey_data` from `consecutive_station()`
+function. See examples.}
 
 \item{loess}{Use loess model (instead of best fit model).}
 
-\item{good_moderate}{The EQR ratio for Good - Moderate boundary.}
+\item{pass_fail}{Pass-fail boundary value.}
 
 \item{method}{Type of method used to analyse samples, either "iqi" or
 "residue".}
+
+\item{n_try}{Number of attempts to fit a model to bootstrap resamples. The
+model is fitted to a maximum 50% of attempts otherwise the model is not
+included. By default, n_try = 1000 and therefore 500 bootstraps are
+returned if model is successfully fitted.}
 }
 \value{
 list containing four named data frames: data, geoDf, geoDfBestFit and
   hexdfOut.
 }
 \description{
-Fit the best model calculating the distance to good status. Where distance
-cannot be modeled, the distance to the second consecutive good status (or
-high status) station is used.
+Fit the best model to calculate the distance from pen edge to where the
+correct standard is reached. Where distance cannot be modeled, the distance
+to the second consecutive station passing the correct standard (or high
+status) station is used. If there are not two consecutive stations reaching
+the standard, use the distance to the last station (station number 7 or
+greater) reaching the correct standard.
 }
 \examples{
 \dontrun{

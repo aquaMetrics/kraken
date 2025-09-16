@@ -9,7 +9,7 @@ test_that("consecutive_stations works", {
   )
   testthat::expect_equal(
     check$sample_point_checks[1, "twoConsecutiveStations"],
-    "Compliant: 2 consecutive stations at Good are returned"
+    "Compliant: 2 consecutive stations at compliant status are returned"
   )
 })
 

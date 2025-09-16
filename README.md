@@ -13,8 +13,8 @@ coverage](https://codecov.io/gh/aquaMetrics/kraken/branch/main/graph/badge.svg)]
 <!-- badges: end -->
 
 The goal of `kraken` [R](https://www.r-project.org/) package is to
-calculate the mixing zone area from Fauna IQI or DNA predicted IQI
-sampling results.
+calculate the mixing zone from Fauna IQI or DNA predicted IQI sampling
+results.
 
 This package is in an experimental phase. The core algorithm for
 calculating the area is unlikely to change, but the function names as
@@ -52,14 +52,19 @@ head(output)
     #> 5 Bellister… Bellister3… 3NABelli… NA         station… Complia… <NULL> benthic …
     #> 6 Bellister… Bellister3… 3NABelli… NA         twoCons… Complia… <NULL> benthic …
 
-The outputs dataframe includes the overall predicted mixing zone area
-(ellipse) with 95% confidence as well as related warnings if applicable.
+The `output` dataframe provides responses to 29 key questions required
+to assess the mixing zone. These responses included station, transect
+and survey-level outputs. The overall estimated mixing zone (with 95%
+confidence) is provided, see `area_95_confidence`.
 
 ``` r
 # area_95 provides the output 
 output$response[output$question == "area_95_confidence"]
 #> [1] "96914.9237670089"
 ```
+
+Additionally, numerous other outputs are provided see `?kraken`
+documentation for details. For example, check if any warnings returned.
 
 ``` r
 output$response[output$question == "area_warning"]
@@ -68,8 +73,8 @@ output$response[output$question == "ellipse_warnings"]
 #> [1] NA
 ```
 
-The outputs also include a map of the stations and including the
-indicative ellipse area:
+The `output` dataframe includes a map of the stations and the indicative
+mixing zone. This is provided in the `object` variable of the dataframe.
 
 ``` r
 output$object[output$question == "map"]
@@ -78,11 +83,12 @@ output$object[output$question == "map"]
 
 <img src="man/figures/README-map-1.png" width="100%" />
 
-Save indicative ellipse area as shapefile:
+You save can indicative mixing zone ‘ellipse’ as a shapefile.
 
 ``` r
 ellipse <- output$object[output$question == "ellipse"][[1]]
-sf::write_sf(ellipse[[1]],"ellipse.shp")
+ellipse <- ellipse[[1]]
+sf::write_sf(ellipse, "ellipse.shp")
 ```
 
 Other lower-level functions are provided to run specific parts of the
@@ -94,6 +100,9 @@ View documentation for each function in the usual way.
 
 ``` r
 ?kraken
-?consecutive_stations
+?consecutive_stations   
 # ...
 ```
+
+A [issues](https://github.com/aquaMetrics/kraken/issues) to github to
+discuss bugs or features.

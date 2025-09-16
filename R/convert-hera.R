@@ -2,6 +2,7 @@
 #'
 #' Convert kraken output into 'hera' format which is a long format tibble
 #' dataframe
+#'
 #' @param method Type of method used to analyse samples either 'iqi' or
 #'   'residue'.
 #' @param data dataframe returned from `consecutive_stations()`
@@ -10,9 +11,6 @@
 #' @param areas dataframe returned from `area()`
 #'
 #' @return dataframe in 'hera' format
-#' @export
-#'
-#' @examples
 convert_hera <- function(method, data, overrides, breachs, areas) {
   breach <- tidyr::pivot_longer(breachs$breachPositionBestFit,
     cols = c(
@@ -31,9 +29,9 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
   )
 
   polygons <- tibble::tibble(
-    question = c("ellipse", "polygon", "spotfire_polygon"),
+    question = c("ellipse", "polygon", "spotfire_ellipse"),
     response = c("object", "object", "object"),
-    object = list(c(areas$ellipse, areas$polygon, areas$spotfire_ellipse))
+    object = c(list(areas$ellipse), list(areas$polygon), list(areas$spotfire_ellipse))
   )
   area <- data.frame(areas$fifthPercentileArea)
   names(area) <- c("area_95_confidence", "package_version", "package_date")
