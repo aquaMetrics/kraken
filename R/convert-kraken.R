@@ -5,8 +5,6 @@
 #' @param data
 #'
 #' @return dataframe
-#'
-#' @examples
 convert_kraken <- function(data) {
   data <- filter(data, .data$question %in% c(
     "Site Name",

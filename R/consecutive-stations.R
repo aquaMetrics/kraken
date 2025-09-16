@@ -1,10 +1,10 @@
 #' Consecutive Stations
 #'
-#' Check if two consecutive stations are at Good status and minimum number of
-#' stations have been sampled.
+#' Check if two consecutive stations reaching the correct standard and minimum
+#' number of stations have been sampled.
 #'
 #' @param data Data frame with survey data
-#' @param good_moderate The EQR ratio for Good - Moderate boundary.
+#' @param pass_fail Pass-fail boundary value.
 #' @param method Type of method used to analyse samples, either "iqi" or
 #'   "residue".
 #' @return A named list of two data frames `sample_point_checks` and
@@ -17,7 +17,7 @@
 #' \dontrun{
 #' stations <- consecutive_stations(demo_iqi)
 #' }
-consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
+consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi") {
 
   # summaryOuput - Survey - Initial checks
   set.seed(123)
@@ -139,9 +139,9 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
 
       # Find distance to Good based on 2 consecutive station rule --------------
       if(method == "residue") {
-      r <- rle(innerTransect$IQI < good_moderate)
+      r <- rle(innerTransect$IQI < pass_fail)
       } else {
-      r <- rle(innerTransect$IQI >= good_moderate)
+      r <- rle(innerTransect$IQI >= pass_fail)
       }
       reducedSamplingD2G <- NA
       s <- NULL
@@ -163,10 +163,10 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
       # Have 2 consecutive Good stations been taken ----------------------------
       if (is.na(reducedSamplingD2G) == TRUE) {
         twoConsecutiveStations <-
-          "Non-compliant: 2 consecutive stations at Good not returned"
+          "Non-compliant: 2 consecutive stations at compliant status not returned"
       } else {
         twoConsecutiveStations <-
-          "Compliant: 2 consecutive stations at Good are returned"
+          "Compliant: 2 consecutive stations at compliant status are returned"
       }
 
       # Assemble summary table
@@ -212,14 +212,14 @@ consecutive_stations <- function(data, good_moderate = 0.64, method = "iqi") {
   # Calculate class ----------------------------------------------------------
   if(method == "residue") {
     testOutput$`WFD status` <- "unclassifiable"
-    testOutput$`WFD status`[testOutput$IQI < good_moderate] <- "Pass"
-    testOutput$`WFD status`[testOutput$IQI >= good_moderate] <- "Fail"
+    testOutput$`WFD status`[testOutput$IQI < pass_fail] <- "Pass"
+    testOutput$`WFD status`[testOutput$IQI >= pass_fail] <- "Fail"
   } else {
 
   testOutput$`WFD status` <- "unclassifiable"
   testOutput$`WFD status`[testOutput$IQI >= 0.75] <- "High"
   testOutput$`WFD status`[testOutput$IQI < 0.75] <- "Good"
-  testOutput$`WFD status`[testOutput$IQI < good_moderate] <- "Moderate"
+  testOutput$`WFD status`[testOutput$IQI < pass_fail] <- "Moderate"
   testOutput$`WFD status`[testOutput$IQI < 0.44] <- "Poor"
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
   }

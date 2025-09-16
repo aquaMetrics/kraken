@@ -13,8 +13,8 @@ coverage](https://codecov.io/gh/aquaMetrics/kraken/branch/main/graph/badge.svg)]
 <!-- badges: end -->
 
 The goal of `kraken` [R](https://www.r-project.org/) package is to
-calculate the mixing zone area from IQI sampling results (DNA or
-taxonomic).
+calculate the mixing zone from Fauna IQI or DNA predicted IQI sampling
+results.
 
 This package is in an experimental phase. The core algorithm for
 calculating the area is unlikely to change, but the function names as
@@ -31,73 +31,78 @@ devtools::install_github("aquaMetrics/kraken")
 
 ## Calculate Area
 
-This example shows you how to calculate mixing zone from demo IQI input
-data:
-
 ``` r
 library(kraken)
 ```
 
-``` r
-## Run the demo IQI data and return the area of the mixing zone
-area <- assess(demo_iqi)
-area
-#> $`5%`
-#> [1] 96914.92
-#>
-#> $`package version`
-#> [1] ‘0.2.0’
-#> 
-#> $`package date`
-#> [1] "2022-07-27"
-```
-
-Alternatively, use lower-level functions to step through each part of
-the process:
+Example shows how to calculate mixing zone and all relevant outputs.
 
 ``` r
-data <- consecutive_stations(demo_iqi)
-probs <- probability_non_linear(data$survey_data)
-overrides <- override(probs,
-                      overrideTransect1 = 100, # transect1 overrides
-                      overrideBearing1 = -47)
-breachs <- breach(overrides)
-areas <- area(breachs)
+output <- kraken(demo_iqi)
+head(output)
 ```
 
-Note, you can add manual override values for distance to good status or
-bearing for each transect using the `override` function.
+    #> # A tibble: 6 × 8
+    #>   project_id location_id sample_id date_taken question response object parameter
+    #>   <chr>      <chr>       <chr>     <date>     <chr>    <chr>    <list> <chr>    
+    #> 1 Bellister… Bellister1… 1NABelli… NA         station… Complia… <NULL> benthic …
+    #> 2 Bellister… Bellister1… 1NABelli… NA         twoCons… Complia… <NULL> benthic …
+    #> 3 Bellister… Bellister2… 2NABelli… NA         station… Complia… <NULL> benthic …
+    #> 4 Bellister… Bellister2… 2NABelli… NA         twoCons… Complia… <NULL> benthic …
+    #> 5 Bellister… Bellister3… 3NABelli… NA         station… Complia… <NULL> benthic …
+    #> 6 Bellister… Bellister3… 3NABelli… NA         twoCons… Complia… <NULL> benthic …
 
-## Plot
-
-The ellipse area is one of the outputs from the `area()` function. An
-example of plotting the ellipse and survey data:
+The `output` dataframe provides responses to 29 key questions required
+to assess the mixing zone. These responses included station, transect
+and survey-level outputs. The overall estimated mixing zone (with 95%
+confidence) is provided, see `area_95_confidence`.
 
 ``` r
-library(sf)
-library(ggplot2)
-
-# Calculate area without overrides
-data <- consecutive_stations(demo_iqi)
-probs <- probability_non_linear(data$survey_data)
-breachs <- breach(probs)
-areas <- area(breachs)
-ellipse <- areas$ellipse
-# Convert survey data to spatial
-data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 4326)
-g <- ggplot() + geom_sf(data = data, aes(color = `WFD status`)) + 
-                geom_sf(data = ellipse, alpha = 0)
-g
+# area_95 provides the output 
+output$response[output$question == "area_95_confidence"]
+#> [1] "96914.9237670089"
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+Additionally, numerous other outputs are provided see `?kraken`
+documentation for details. For example, check if any warnings returned.
+
+``` r
+output$response[output$question == "area_warning"]
+#> [1] NA
+output$response[output$question == "ellipse_warnings"]
+#> [1] NA
+```
+
+The `output` dataframe includes a map of the stations and the indicative
+mixing zone. This is provided in the `object` variable of the dataframe.
+
+``` r
+output$object[output$question == "map"]
+#> [[1]]
+```
+
+<img src="man/figures/README-map-1.png" width="100%" />
+
+You save can indicative mixing zone ‘ellipse’ as a shapefile.
+
+``` r
+ellipse <- output$object[output$question == "ellipse"][[1]]
+ellipse <- ellipse[[1]]
+sf::write_sf(ellipse, "ellipse.shp")
+```
+
+Other lower-level functions are provided to run specific parts of the
+validation and calculation process.
 
 ## Help
 
 View documentation for each function in the usual way.
 
 ``` r
-?assess
-?consecutive_stations
+?kraken
+?consecutive_stations   
 # ...
 ```
+
+A [issues](https://github.com/aquaMetrics/kraken/issues) to github to
+discuss bugs or features.

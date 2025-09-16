@@ -211,38 +211,38 @@ gis_data <- gis_attributes(wfd_data)
 ## Distance to Good
 
 ```{r}
-distance <- function(data) {
-   transect_data <- data %>%
-    filter(question == "Transect") %>%
-    distinct()
-
-  transect_data <- pivot_wider(
-    transect_data,
-    names_from = question,
-    values_from = response
-  )
-  
-  
-  purrr::map_df(split(data, data$Transect), function(transect){
-    
-    
-     
-  return(data)
-  })
-  
- 
-}
-
-distance_data <- distance(gis_data)
+# distance <- function(data) {
+#    transect_data <- data %>%
+#     filter(question == "Transect") %>%
+#     distinct()
+# 
+#   transect_data <- pivot_wider(
+#     transect_data,
+#     names_from = question,
+#     values_from = response
+#   )
+#   
+#   
+#   purrr::map_df(split(data, data$Transect), function(transect){
+#     
+#     
+#      
+#   return(data)
+#   })
+#   
+#  
+# }
+# 
+# distance_data <- distance(gis_data)
 ```
 
 ## Area
 
 ```{r}
-area <- function(data) {
-  return(data)
-}
-area_data <- distance(distance_data)
+# area <- function(data) {
+#   return(data)
+# }
+# area_data <- distance(distance_data)
 ```
 
 ## Overall Calculation
@@ -251,29 +251,29 @@ Wrap all the sub functions into an overall `kraken()` function.
 
 ```{r}
 # `question` - What is be categorized e.g. IQI, emermectin, phosphorus, diatoms...
-kraken <- function(data, question, eqr_bands) {
-  wfd <- wfd_status(
-    data,
-    question,
-    eqr_bands
-  )
-  gis <- gis_attributes(wfd)
-  distance <- distance(gis)
-  area <- area(distance)
-
-  return(area)
-}
-
-
-output <- kraken(data,
-  question = "IQI",
-  eqr_bands = c(
-    0,
-    0.24,
-    0.44,
-    0.64,
-    0.75,
-    1
-  )
-)
+# kraken <- function(data, question, eqr_bands) {
+#   wfd <- wfd_status(
+#     data,
+#     question,
+#     eqr_bands
+#   )
+#   gis <- gis_attributes(wfd)
+#   distance <- distance(gis)
+#   area <- area(distance)
+# 
+#   return(area)
+# }
+# 
+# 
+# output <- kraken(data,
+#   question = "IQI",
+#   eqr_bands = c(
+#     0,
+#     0.24,
+#     0.44,
+#     0.64,
+#     0.75,
+#     1
+#   )
+# )
 ```

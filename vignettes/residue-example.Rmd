@@ -16,22 +16,25 @@ library(tidyr)
 library(ggplot2)
 library(drc)
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(warning =  FALSE)
+knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 ```
 
 ## Data
 
-Export data from fishfarm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environmment pane to import data or use `read.csv()` funtion and paste in file path - but replace  '\' with '/' in the path.
+Export data from fish farm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environment pane to import data or use `read.csv()` function and paste in file path - but replace  '\' with '/' in the path.
 
 ```{r data}
-test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
+data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
+
+# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326.csv")
 
 # Filter data for my particular farm/date of interest
-test_data <- dplyr::filter(test_data, Site.ID == "BELL1")
+data <- dplyr::filter(data, Site.ID == "BELL1")
 
 # Select only the columns needed for calculations
-test_data <- dplyr::select(test_data,
+data <- dplyr::select(data,
+  EQS..ng.kg.,
   "Survey_date" = Survey.Date,
   "MCFF" = Site.ID,
   Transect,
@@ -41,12 +44,17 @@ test_data <- dplyr::select(test_data,
   "Embz-1" = EmBz.residues..Rep.1...ng.kg.,
   "Embz-2" = EmBz.residues..Rep.2..ng.kg.,
   "Embz-3" = EmBz.residues..Rep.3..ng.kg.
-  )
+)
 
 # Pivot the data into structure require for calculations
-test_data <- tidyr::pivot_longer(test_data, 
-                                 cols = c("Embz-1", "Embz-2", "Embz-3"), 
-                                 names_to = "Station_id", values_to = "IQI")
+data <- tidyr::pivot_longer(
+  data,
+  cols = c("Embz-1", "Embz-2", "Embz-3"),
+  names_to = "Station_id", values_to = "IQI"
+)
+
+data$IQI <- as.numeric(data$IQI)
+pass_fail <- unique(data$EQS..ng.kg.)
 ```
 
 
@@ -55,24 +63,18 @@ test_data <- tidyr::pivot_longer(test_data,
 Run data through calculations.
 
 ```{r run-kraken}
-
-test_data$IQI <- as.numeric(test_data$IQI)
-
-output <- kraken::kraken(test_data,
-                         good_moderate = 768, 
-                         method = "residue", 
-                         loess = TRUE, niter = 10)
-
-
+output <- kraken::kraken(data,
+  pass_fail = pass_fail,
+  method = "residue",
+  loess = FALSE, n_try = 10
+)
 ```
 
 ## Map
 
 ```{r map}
-
 map <- output$object[output$question == "map"]
 map
-
 ```
 
 ## Including Plots
@@ -81,53 +83,74 @@ Need to create a plot of the regression line based on the optimal model fitted..
 Bit complicated...find which model has been used for each transect
 
 ```{r model}
-
-model <- output$object[output$question == "model_info"]
+model <- output$object[output$question == "model_info"][[1]]
 model
 ```
 
 Model: 'Regression model fit not of sufficient quality to use' - not sure why?
 Is the model struggling to fit? Wasn't a problem with earlier test data?
 
-```{r plots}
+```{r plots, eval=FALSE}
 # pivot output
-data <- output %>%  dplyr::filter(grepl("BELL11", location_id))
-data <- data %>% dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
+plots_data <- output %>% dplyr::filter(grepl("BELL1", location_id))
+plots_data <- plots_data %>% 
+  dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
+plots_data <- distinct(plots_data)
+
+plots_data <- purrr::map_df(
+  split(plots_data, plots_data$sample_id), function(sample) {
+  
+  
+  
+  return(sample)
+})
 
 
-# data$results_id <- sort(rep(1:7,3))
-# 
-# data <- distinct(data)
-# data$result_id <- 1:63
-# data <- pivot_wider(data, names_from = question, values_from = response)
-# data <- data %>% filter(MCFF_Transect == "BELL1 - 1")
-# data$IQI <- as.numeric(data$IQI)
-# data$Distance <- as.numeric(data$Distance)
-# 
-# 
-# # new data with predictions
-# ggplot(aes(Distance,IQI),data = data) + 
-#   geom_smooth(method=drm, method.args = list(fct = MM.3()), se = FALSE) +
-#   ylab("Emmamectin PPM") +
-#   ggplot2::ggtitle(paste0("Transect: ", unique(data$MCFF_Transect)))
-# 
-# qplot(Distance,IQI,data = data) + 
-#   geom_smooth(method=drm, method.args = list(fct = MM.3()), se = FALSE) +
-#   ylab("Emmamectin PPM") +
-#   ggplot2::ggtitle(paste0("Transect: ", unique(data$MCFF_Transect)))
-# 
-# 
-# drm(IQI ~ Distance,
-#       data = data,
-#       fct = MM.3(),
-#       type = "continuous",
-#       control = drmc(
-#         noMessage = TRUE,
-#         warnVal = -1,
-#         trace = FALSE,
-#         otrace = FALSE
-#       )
-#     )
+plots_data <- pivot_wider(plots_data, names_from = question, 
+                          values_from = response)
+plots_data$IQI <- as.numeric(plots_data$IQI)
+plots_data$Distance <- as.numeric(plots_data$Distance)
+
+p <- list()
+for(i in 1:nrow(model)) {
+  model_plot <- model[model$Transect == i, ]
+  plot_data <- plots_data[grepl(paste0("- ",i), plots_data$MCFF_Transect), ]
+  model_type <- paste0(trimws(substr(model_plot$bestModel,1,4)), "()")
+  message(model_type)
+  if(model_type == "Regr()") {
+  p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
+  geom_point() +
+  # geom_smooth(method = "lm", linetype = 2) +
+  ylab("Emmamectin PPM") +
+  ggplot2::ggtitle(paste0("Site: ", unique(plot_data$project_id)),
+                       subtitle = paste0(unique(plot_data$MCFF_Transect),
+                                         " Model fit not of sufficient quality to use")) +
+#  facet_wrap(vars(MCFF_Transect)) +
+  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2)
+    } else {
+  p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
+  geom_point() +
+  geom_smooth(method = drm,
+              method.args = list(fct = eval(parse(text=model_type))),
+              se = FALSE) +
+  ylab("Emmamectin PPM") +
+  ggtitle(paste0("Site: ", unique(plot_data$project_id)), 
+          subtitle = unique(plot_data$MCFF_Transect)) +
+  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2)
+      }
+}
+
+
+
+```
+
+
+```{r, eval=FALSE}
+
+output$response[output$question == "area_95_confidence"]
+
+(100/ 196238 )  * 327687.555651631
+
 
 
 ```

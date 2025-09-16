@@ -4,12 +4,12 @@
 \alias{consecutive_stations}
 \title{Consecutive Stations}
 \usage{
-consecutive_stations(data, good_moderate = 0.64, method = "iqi")
+consecutive_stations(data, pass_fail = 0.64, method = "iqi")
 }
 \arguments{
 \item{data}{Data frame with survey data}
 
-\item{good_moderate}{The EQR ratio for Good - Moderate boundary.}
+\item{pass_fail}{Pass-fail boundary value.}
 
 \item{method}{Type of method used to analyse samples, either "iqi" or
 "residue".}
@@ -19,8 +19,8 @@ A named list of two data frames `sample_point_checks` and
   `survey_data`
 }
 \description{
-Check if two consecutive stations are at Good status and minimum number of
-stations have been sampled.
+Check if two consecutive stations reaching the correct standard and minimum
+number of stations have been sampled.
 }
 \examples{
 \dontrun{

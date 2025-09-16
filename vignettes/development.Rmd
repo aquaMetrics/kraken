@@ -37,8 +37,7 @@ Below is a summary of long-term and short-term development ideas to make running
 
 ### New warnings and messages needed
 
-- Messages for 'additional', '555' or '999' transects? i.e. Reference or additional sampling>?
-- Warnings if no ellipse can be calculated (see below for un-coded failures modes)
+- Messages for 'additional', '555' or '999' transects? i.e. Reference or additional sampling?
 
 ### No good reporting output from kraken - makes testing, developing, and debugging hard.
 
@@ -49,7 +48,7 @@ data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
   package = "kraken"
 ), check.names = FALSE)
 
-result <- kraken(data, loess = TRUE, good_moderate = 0.60, niter = 10)
+result <- kraken(data, loess = TRUE, pass_fail = 0.60, n_try = 10)
 ```
 
 
@@ -64,10 +63,11 @@ data <- read.csv(system.file("extdat", "test-data/west-of-burwick-iqi-data.csv",
   package = "kraken"
 ), check.names = FALSE)
 
-result <- kraken(data, loess = FALSE, good_moderate = 0.60, niter = 10)
+result <- kraken(data, loess = FALSE, pass_fail = 0.60, n_try = 10)
 distances <- result %>% filter(question == "breachDistanceBestFit")
 distances$transect <- 1:nrow(distances)
-knitr::kable(dplyr::select(distances, location_id, question, response) %>% mutate(location_id = gsub(pattern = "NA", replacement = "", .$location_id) ))
+knitr::kable(dplyr::select(distances, location_id, question, response) %>%
+               mutate(location_id = gsub(pattern = "NA", replacement = "", .$location_id) ))
 
 breach <- result %>%  filter(question == "breachPositionEnsemble")
 breach <- breach$object[[1]]
@@ -113,7 +113,7 @@ points <- sf::st_transform(points,
   crs = "EPSG:4326")
 
 data <- consecutive_stations(data)
-probs <- probability_non_linear(data$survey_data, loess = TRUE)
+probs <- probability_non_linear(data$survey_data, loess = TRUE, n_try = 10)
 overrides <- override(probs)
 breachs <- breach(overrides)
 areas <- kraken::area(breachs)
@@ -181,18 +181,18 @@ print(paste("Polygon: ", round(st_area(polygon))))
 Currently, we can't automatically deal with separate calculations for pen groups. The above six transect survey would better be calculated as two separate pen groups/ellipses and the two areas merged.
 
 ```{r, message=FALSE, warning=FALSE}
-
-
 transects_pen_1 <- filter(data, Transect %in% c(6,1,2))
 transects_pen_2 <- filter(data, Transect %in% c(4,5,3))
 
 pen_1 <- consecutive_stations(transects_pen_1)
-probs_1 <- suppressWarnings( probability_non_linear(pen_1$survey_data, loess = TRUE))
+probs_1 <- suppressWarnings(
+  probability_non_linear(pen_1$survey_data, loess = TRUE, n_try = 10))
 breach_1 <- breach(probs_1)
 area_1 <- kraken::area(breach_1)
 
 pen_2 <- consecutive_stations(transects_pen_2)
-probs_2 <- suppressWarnings(probability_non_linear(pen_2$survey_data, loess = TRUE))
+probs_2 <- suppressWarnings(
+  probability_non_linear(pen_2$survey_data, loess = TRUE, n_try = 10))
 breach_2 <- breach(probs_2)
 area_2 <- kraken::area(breach_2)
 
@@ -249,7 +249,8 @@ g <- ggplot() +
   blue_theme
 g
 
-single_sf <- dplyr::bind_rows(list(area_2$ellipse,area_1$ellipse))
+single_sf <- dplyr::bind_rows(sf::st_as_sf(area_2$ellipse),
+                              sf::st_as_sf(area_1$ellipse))
 union <- st_union(single_sf)
 sum <- area_2$fifthPercentileArea[[1]][1] + area_1$fifthPercentileArea[[1]][1]
 
@@ -306,7 +307,7 @@ knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
   col.names = "Adjacent"
 )
 
-probs <- probability_non_linear(data$survey_data, niter = 10)
+probs <- probability_non_linear(data$survey_data, n_try = 10)
 overrides <- override(probs)
 breachs <- breach(overrides)
 areas <- kraken::area(breachs)
@@ -383,7 +384,7 @@ knitr::kable(data$sample_point_checks[1, c("twoConsecutiveStations")],
   col.names = "Adjacent"
 )
 
-probs <- suppressWarnings(probability_non_linear(data$survey_data, niter = 10))
+probs <- suppressWarnings(probability_non_linear(data$survey_data, n_try = 10))
 overrides <- override(probs)
 breachs <- breach(overrides)
 areas <- kraken::area(breachs)
@@ -519,7 +520,7 @@ knitr::kable(data$survey_data[data$survey_data$Transect == 1, c("Transect", "Sta
 **However this rule is not yet applied in the model/app?**. Note all stations on the transect 1 are Good status but 3rd station is not 150-300 even though 2nd station is less than 100m.
 
 ```{r, results='hide', fig.keep='all'}
-probs <- probability_non_linear(data$survey_data, loess = TRUE, niter = 10)
+probs <- probability_non_linear(data$survey_data, loess = TRUE, n_try = 10)
 overrides <- override(probs)
 breachs <- breach(overrides)
 
@@ -594,7 +595,7 @@ start <- Sys.time()
 ```
 
 ```{r, results='hide'}
-probs <- probability_non_linear(data$survey_data, loess = TRUE, niter =10)
+probs <- probability_non_linear(data$survey_data, loess = TRUE, n_try =10)
 ```
 
 ```{r}
@@ -645,7 +646,7 @@ start <- Sys.time()
 ```
 
 ```{r, results='hide'}
-probs <- probability_non_linear(data$survey_data,  niter = 10)
+probs <- probability_non_linear(data$survey_data,  n_try = 10)
 ```
 
 ```{r}

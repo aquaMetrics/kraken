@@ -1,15 +1,22 @@
 #' Probability Non-linear
 #'
-#' Fit the best model calculating the distance to good status. Where distance
-#' cannot be modeled, the distance to the second consecutive good status (or
-#' high status) station is used.
+#' Fit the best model to calculate the distance from pen edge to where the
+#' correct standard is reached. Where distance cannot be modeled, the distance
+#' to the second consecutive station passing the correct standard (or high
+#' status) station is used. If there are not two consecutive stations reaching
+#' the standard, use the distance to the last station (station number 7 or
+#' greater) reaching the correct standard.
 #'
-#' @param data The named data frame `survey_data` from `consecutive_station()` function. See examples.
+#' @param data The named data frame `survey_data` from `consecutive_station()`
+#'   function. See examples.
 #' @param loess Use loess model (instead of best fit model).
-#' @param good_moderate The EQR ratio for Good - Moderate boundary.
+#' @param pass_fail Pass-fail boundary value.
 #' @param method Type of method used to analyse samples, either "iqi" or
 #'   "residue".
-#' @param niter Number of bootstrap resamples must be even number
+#' @param n_try Number of attempts to fit a model to bootstrap resamples. The
+#'   model is fitted to a maximum 50% of attempts otherwise the model is not
+#'   included. By default, n_try = 1000 and therefore 500 bootstraps are
+#'   returned if model is successfully fitted.
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
 #'   hexdfOut.
 #' @export
@@ -25,9 +32,9 @@
 #' }
 probability_non_linear <- function(data,
                                    loess = FALSE,
-                                   good_moderate = 0.64,
+                                   pass_fail = 0.64,
                                    method = "iqi",
-                                   niter = 1000) {
+                                   n_try = 1000) {
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
   #   2 Improved 2 station rule method
@@ -113,9 +120,9 @@ probability_non_linear <- function(data,
     }
     # Find distance to Good based on 2 consecutive station rule
     if (method == "iqi") {
-      r <- rle(innerTransect$IQI >= good_moderate)
+      r <- rle(innerTransect$IQI >= pass_fail)
     } else {
-      r <- rle(innerTransect$IQI < good_moderate)
+      r <- rle(innerTransect$IQI < pass_fail)
     }
     s <- NULL
     for (j in 1:length(r$values)) {
@@ -143,7 +150,15 @@ probability_non_linear <- function(data,
     }
 
     # 2 Build initial model ----------------------------------------------------
-
+    # Errors from drc package while using 'try' during model fitting are
+    # difficult to suppress so using sink() to divert R output to system
+    # file.
+    output_path <- paste0(
+      system.file(package = "kraken"),
+      "/extdat/output.txt"
+    )
+    zz <- file(output_path, open = "wt")
+    sink(zz, type = "message")
     try(mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
       data = innerTransect,
       fct = MM.3(),
@@ -166,6 +181,8 @@ probability_non_linear <- function(data,
         otrace = FALSE
       )
     ))), silent = TRUE)
+    sink(type = "message")
+    close(zz)
     # Calculate Easting and Northing for re-use later
     easting_min <- unique(
       innerTransect$Easting[innerTransect$Distance ==
@@ -185,9 +202,6 @@ probability_non_linear <- function(data,
 
     if ((numberOfStations < 7) & (is.na(reducedSamplingD2G) == TRUE)) {
       # Situation 1 - Insufficient data to determine any distance to Good
-      message(
-        "Situation 1 - Insufficient data to determine any distance to Good"
-      )
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -214,8 +228,8 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_min,
           Northing = northing_min,
-          D2G = rep(NA, (niter / 2)),
-          D2Ghist = rep(NA, (niter / 2 )),
+          D2G = rep(NA, (n_try / 2)),
+          D2Ghist = rep(NA, (n_try / 2)),
           D2Gtype = "No result"
         ))
       )
@@ -264,10 +278,8 @@ probability_non_linear <- function(data,
       hexdf <- rbind(hexdf, surveyData)
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((numberOfStations < 7) & (is.na(reducedSamplingD2G) == FALSE)) {
-      message(
-        "Situation 2 - Insufficient data for regression model, but do have
-      reduced monitoring result to use"
-      )
+      # Situation 2 - Insufficient data for regression model, but do have
+      # reduced monitoring result to use
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -293,8 +305,8 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_reduced,
           Northing = northing_reduced,
-          D2G = rep(0, (niter /2)),
-          D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
+          D2G = rep(0, (n_try / 2)),
+          D2Ghist = rep(reducedSamplingD2G, (n_try / 2)),
           D2Gtype = "Reduced analysis"
         ))
       )
@@ -346,9 +358,8 @@ probability_non_linear <- function(data,
       hexdfOut <- rbind(hexdfOut, hexdf)
     } else if ((exists("mL4") == FALSE) &
       (is.na(reducedSamplingD2G) == FALSE)) {
-      message(
-        "Situation 3 - Unable to fit regression model, but do have reduced monitoring result to use"
-      )
+      # Situation 3 - Unable to fit regression model, but do have reduced
+      # monitoring result to use
       summaryOutput <- rbind(
         summaryOutput,
         data.frame(cbind(
@@ -374,8 +385,8 @@ probability_non_linear <- function(data,
           Bearing = unique(innerTransect$Bearing),
           Easting = easting_reduced,
           Northing = northing_reduced,
-          D2G = rep(0, (niter / 2)),
-          D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
+          D2G = rep(0, (n_try / 2)),
+          D2Ghist = rep(reducedSamplingD2G, (n_try / 2)),
           D2Gtype = "Reduced analysis"
         ))
       )
@@ -529,19 +540,16 @@ probability_non_linear <- function(data,
       } else if (bestModel$Params == 4) {
         if (((modelComp3params$IC - 10) < bestModel$IC) &
           (is.na(modelComp3params$IC) == FALSE)) {
-          message("Replace with 3 param model")
           modelComp <- modelComp3params
           ICresult <- "Best fitting model replaced by simpler one"
         }
       } else if (bestModel$Params == 5) {
         if (((modelComp3params$IC - 10) < bestModel$IC) &
           (is.na(modelComp3params$IC) == FALSE)) {
-          message("Replace with 3 param model")
           modelComp <- modelComp3params
           ICresult <- "Best fitting model replaced by simpler one"
         } else if (((modelComp4params$IC - 10) < bestModel$IC) &
           (is.na(modelComp4params$IC) == FALSE)) {
-          message("Replace with 4 param model")
           modelComp <- modelComp4params
           ICresult <- "Best fitting model replaced by simpler one"
         }
@@ -606,10 +614,7 @@ probability_non_linear <- function(data,
       ) # Change
 
       bestModel <- modelList[paste(bestFit1[, 2])][[1]]
-      # bestModel <- modelList[[grep(bestFit1[, 2], modelList)[1]]]
-      # if(i == "West of Burwick - 4") {
-      #   browser()
-      # }
+
       mL4 <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
         data = innerTransect,
         fct = bestModel,
@@ -622,11 +627,6 @@ probability_non_linear <- function(data,
         )
       )))
       residsOut <- data.frame(mL4$predres)
-      # if(loess == TRUE ) {
-      #   mL4 <- stats::loess(IQI ~ Distance, data = innerTransect)
-      #   residsOut <- data.frame("Predicted values" = mL4$fitted,
-      #                           "Residuals" = mL4$residuals)
-      # }
 
       # Collate info on best fit
       if (exists("bestFit1Collated") == FALSE) {
@@ -664,11 +664,11 @@ probability_non_linear <- function(data,
       bestFit$Transect <- i
       if (method == "iqi") {
         D2GbestFit <- as.numeric(
-          bestFit$Distance[min(which(bestFit$IQI >= good_moderate))]
+          bestFit$Distance[min(which(bestFit$IQI >= pass_fail))]
         )
       } else {
         D2GbestFit <- as.numeric(
-          bestFit$Distance[min(which(bestFit$IQI < good_moderate))]
+          bestFit$Distance[min(which(bestFit$IQI < pass_fail))]
         )
       }
 
@@ -698,7 +698,8 @@ probability_non_linear <- function(data,
           return(data2[, ])
         }
       }
-      mL4List <- (rep(list(mL4), niter))
+
+      mL4List <- (rep(list(mL4), n_try))
       bootDRCdata <- lapply((mL4List), bootDRC)
 
       convergedCount <- rep(0, length(bootDRCdata))
@@ -713,11 +714,19 @@ probability_non_linear <- function(data,
       )
       numberConverged <- 0
       xy <- 1
-      # if (i == "Bellister - 1") {
-      #   browser()
-      # }
-      while ((numberConverged < (niter / 2)) & (xy <= length(bootDRCdata))) {
+      # Attempt n_try times or until half of n_try successfully fitted
+      # ('converged')
+      while ((numberConverged < (n_try / 2)) & (xy <= n_try)) {
         mLBoot <- NULL
+        # Errors from drc package while using 'try' during model fitting are
+        # difficult to suppress so using sink() to divert R output to system
+        # file.
+        output_path <- paste0(
+          system.file(package = "kraken"),
+          "/extdat/output.txt"
+        )
+        zz <- file(output_path, open = "wt")
+        sink(file = zz, type = "message")
         if (loess == FALSE) {
           try(mLBoot <- suppressMessages(suppressWarnings(drm(IQI ~ Distance,
             data = as.data.frame(bootDRCdata[xy]),
@@ -735,7 +744,8 @@ probability_non_linear <- function(data,
             data = as.data.frame(bootDRCdata[xy])
           ))), silent = TRUE)
         }
-
+        sink(type = "message")
+        close(zz)
         if (is.null(mLBoot) == FALSE) {
           convergedCount[xy] <- 1
           ypred_mLBoot[[xy]] <- data.frame(
@@ -763,23 +773,21 @@ probability_non_linear <- function(data,
       # Calculate distance to Good distribution
       if (method == "iqi") {
         D2Gfunc <- function(x) {
-          if ((max(x$IQI) >= good_moderate) & (x$IQI[nrow(x)] >= x$IQI[1])) {
-            as.numeric(x$Distance[min(which(x$IQI >= good_moderate))])
+          if ((max(x$IQI) >= pass_fail) & (x$IQI[nrow(x)] >= x$IQI[1])) {
+            as.numeric(x$Distance[min(which(x$IQI >= pass_fail))])
           } else {
             NA
           }
         }
       } else {
         D2Gfunc <- function(x) {
-          if ((max(x$IQI) < good_moderate) & (x$IQI[nrow(x)] >= x$IQI[1])) {
-            as.numeric(x$Distance[min(which(x$IQI < good_moderate))])
+          if ((max(x$IQI) < pass_fail) & (x$IQI[nrow(x)] >= x$IQI[1])) {
+            as.numeric(x$Distance[min(which(x$IQI < pass_fail))])
           } else {
             NA
           }
         }
       }
-
-
 
       distanceToGoodDist <- lapply(bootDRCmods, D2Gfunc)
       distanceToGoodDist <- as.data.frame(t(as.data.frame(distanceToGoodDist)))
@@ -921,8 +929,8 @@ probability_non_linear <- function(data,
               Bearing = unique(innerTransect$Bearing),
               Easting = easting_min,
               Northing = northing_min,
-              D2G = rep(NA, (niter / 2)),
-              D2Ghist = rep(NA, (niter / 2)),
+              D2G = rep(NA, (n_try / 2)),
+              D2Ghist = rep(NA, (n_try / 2)),
               D2Gtype = "No result"
             ))
           )
@@ -994,8 +1002,8 @@ probability_non_linear <- function(data,
               Bearing = unique(innerTransect$Bearing),
               Easting = Easting,
               Northing = Northing,
-              D2G = rep(0, (niter / 2)),
-              D2Ghist = rep(reducedSamplingD2G, (niter / 2)),
+              D2G = rep(0, (n_try / 2)),
+              D2Ghist = rep(reducedSamplingD2G, (n_try / 2)),
               D2Gtype = "Reduced analysis"
             ))
           )
@@ -1041,19 +1049,23 @@ probability_non_linear <- function(data,
     last_station <- data %>%
       group_by(Transect) %>%
       dplyr::arrange(Transect, desc(Station)) %>%
-      dplyr::summarise(last_transect = dplyr::first(`WFD status`),
-                       last_station =  dplyr::first(`Station`))
+      dplyr::summarise(
+        last_transect = dplyr::first(`WFD status`),
+        last_station = dplyr::first(`Station`)
+      )
 
-     D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
+    D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
 
     last_station <- last_station %>%
       dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
     if (all(last_station$last_transect %in% c("Good", "High", "Pass")) &
-        all(last_station$last_station > 6)) {
+      all(last_station$last_station > 6)) {
       summaryOutput$type <-
-        paste0("Area based on transect ",
-               paste0((last_station$Transect), collapse = " & ") ,
-               " attaining compliance standard at last station")
+        paste0(
+          "Area based on transect ",
+          paste0((last_station$Transect), collapse = " & "),
+          " attaining compliance standard at last station"
+        )
       summaryOutput$sign <- NA
     } else {
       summaryOutput$type <- "Minimal footprint area"
@@ -1069,8 +1081,10 @@ probability_non_linear <- function(data,
 
     mini_dist_good$Transect <- as.character(mini_dist_good$Transect)
     D2Gdistr <- dplyr::inner_join(D2Gdistr, mini_dist_good, by = "Transect")
-    D2Gdistr$D2G[is.na(D2Gdistr$D2G)] <- D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2G)]
-    D2Gdistr$D2Ghist[is.na(D2Gdistr$D2Ghist)] <- D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2Ghist)]
+    D2Gdistr$D2G[is.na(D2Gdistr$D2G)] <-
+      D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2G)]
+    D2Gdistr$D2Ghist[is.na(D2Gdistr$D2Ghist)] <-
+      D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2Ghist)]
   }
   # Put outputs into list
   data <- list(
@@ -1080,6 +1094,5 @@ probability_non_linear <- function(data,
     hexdfOut
   )
   names(data) <- c("data", "geoDf", "geoDfBestFit", "hexdfOut")
-
   return(data)
 }

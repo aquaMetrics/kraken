@@ -6,7 +6,7 @@ test_that("test kraken works", {
 
   # One transect doesn't reach good status - and all values the same!
   # Test failing! Appears if model can't be fitted but 7 stations available then
-  # this state not catch correctly by if statements.
+  # this state not caught correctly by if statements.
   # demo_iqi <- kraken::demo_iqi
   # demo_iqi$IQI[1:9] <- 0.5
   # test_all_the_same <- kraken(demo_iqi)
@@ -19,16 +19,12 @@ test_that("test kraken works", {
 
   # May have a grey out pen edge station
 
-  # Missig IQI values after
-
-
-  # Negative IQI?
-  # Add error message for negative values?
+  # Missing IQI values after
 
   # One transect doesn't reach good status
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[7:9] <- 0.62
-  test_minimal <- kraken(demo_iqi, niter = 10)
+  test_minimal <- kraken(demo_iqi, n_try = 10)
   testthat::expect_true(any(test_minimal$response == ">"))
   testthat::expect_true(any(test_minimal$response == "Minimal footprint area"))
 
@@ -36,13 +32,13 @@ test_that("test kraken works", {
   # Test if one missing IQI scores at station 2
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[2] <- NA
-  missing_station_2 <- kraken(demo_iqi, niter = 10)
+  missing_station_2 <- kraken(demo_iqi, n_try = 10)
   # missing_station_2$object[missing_station_2$question == "map"]
 
   # Test if one missing IQI scores at pen edge (station 1)
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[1] <- NA
-  missing_station_1 <- kraken(demo_iqi,  niter = 10)
+  missing_station_1 <- kraken(demo_iqi,  n_try = 10)
 
   # Test all pen edge missing IQI scores
   demo_iqi <- kraken::demo_iqi
@@ -50,7 +46,7 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- NA
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
-  all_pen_edge_missing <- kraken(demo_iqi, niter = 10)
+  all_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
   # all_pen_edge_missing$object[all_pen_edge_missing$question == "map"]
 
   # Test all pen edge missing IQI scores and reduced sampling
@@ -63,7 +59,7 @@ test_that("test kraken works", {
   demo_iqi <- demo_iqi[c(1,10,17,24,7,8,13,14,21,22,27,28), ]
   # remove other values
 
-  reduced_pen_edge_missing <- kraken(demo_iqi, niter = 10)
+  reduced_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
   # reduced_pen_edge_missing$object[reduced_pen_edge_missing$question == "map"]
 
 })
@@ -96,25 +92,9 @@ test_that("test kraken works for chemistry data", {
                                    names_to = "Station_id", values_to = "IQI")
 
  test_chem  <- kraken(test_data,
-                      good_moderate = 768,
+                      pass_fail = 768,
                       method = "residue",
                       loess = TRUE)
-
-
-
-
-
- # results <- test_chem %>%
- #   filter(question %in% c("Distance", "IQI")) %>%
- #   select(question, response, sample_id, location_id) %>%
- #   pivot_wider(names_from = question, values_from = response) %>%
- #   unnest(cols = c(IQI, Distance))
- #
- #   ggplot(results, aes(Distance, IQI)) +
- #     geom_point() +
- #     facet_wrap(facets = results$location_id)
-
- # hellisay 5279
 
 })
 
