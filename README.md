@@ -52,7 +52,7 @@ head(output)
     #> 5 Bellister… Bellister3… 3NABelli… NA         station… Complia… <NULL> benthic …
     #> 6 Bellister… Bellister3… 3NABelli… NA         twoCons… Complia… <NULL> benthic …
 
-The `output` dataframe provides responses to 29 key questions required
+The `output` dataframe provides responses to 30 key questions required
 to assess the mixing zone. These responses included station, transect
 and survey-level outputs. The overall estimated mixing zone (with 95%
 confidence) is provided, see `area_95_confidence`.
@@ -87,7 +87,6 @@ You save can indicative mixing zone ‘ellipse’ as a shapefile.
 
 ``` r
 ellipse <- output$object[output$question == "ellipse"][[1]]
-ellipse <- ellipse[[1]]
 sf::write_sf(ellipse, "ellipse.shp")
 ```
 
