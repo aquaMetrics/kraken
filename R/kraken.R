@@ -87,7 +87,8 @@ kraken <- function(data,
                    hera_format = FALSE,
                    pass_fail = 0.64,
                    method = "iqi",
-                   n_try = 1000) {
+                   n_try = 1000,
+                   ellipse_representative = FALSE) {
 
   if (hera_format == TRUE) {
     # If input data from kraken::survey_import() change back into kraken data
@@ -131,8 +132,8 @@ kraken <- function(data,
       overrideBearing3,
       overrideBearing4
     )
-    breachs <- breach(overrides)
-    areas <- area(breachs)
+    breachs <- breach(overrides, ellipse_representative)
+    areas <- area(breachs, ellipse_representative)
     # Pivot output into long format --------------------------------------------
     output <- convert_hera(method, data, overrides, breachs, areas)
 
