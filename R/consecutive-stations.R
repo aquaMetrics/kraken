@@ -16,7 +16,7 @@
 #' \dontrun{
 #' stations <- consecutive_stations(demo_iqi)
 #' }
-consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi") {
+consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average = FALSE) {
 
   # summaryOuput - Survey - Initial checks
   set.seed(123)
@@ -24,11 +24,12 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi") {
 
   # If replicate values per station then return average values
   # keep original value
-  # data$original_iqi <- data$IQI
-  # data <- data %>%
-  #   group_by(Transect, Station) %>%
-  #   mutate(IQI = mean(IQI))
-  # data <- ungroup(data)
+  data$original_iqi <- data$IQI
+  data <- data %>%
+    group_by(Transect, Station) %>%
+    mutate(IQI = mean(IQI))
+  data <- ungroup(data)
+
 
   if (length(unique(data$MCFF)) > 1) {
     testOutput <- data.frame(cbind(
@@ -223,7 +224,12 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi") {
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
   }
 
-  # data$IQI <- data$original_iqi
+  if(average == FALSE) {
+  data$IQI <- data$original_iqi
+  } else {
+  data <- select(data, -Station_id, -original_iqi)
+  data <- distinct(data)
+  }
   # Filter columns to only required columns
   testOutput <- dplyr::select(
     testOutput,
