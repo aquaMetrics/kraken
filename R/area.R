@@ -4,6 +4,10 @@
 #'
 #' @param data named list of 3 data frames output from the `breach()` function:
 #'   `surveyData`, `breachPositionEnsemble` and `breachPositionBestFit`.
+#' @param ellipse_representative set to TRUE to return ellipse accurately
+#'   representing 95% of the area using 95% distance to passing status on each
+#'   transect. The default is FALSE, returning an indicative ellipse based on a
+#'   single fitting of the model.
 #' @return Named list of 7 objects:
 #' \describe{
 #' \item{ellipse}{sf object of the ellipse area}
@@ -31,7 +35,7 @@
 #' plot(area[["ellipse"]])
 #' area[["fifthPercentileArea"]]
 #' }
-area <- function(data) {
+area <- function(data, ellipse_representative = FALSE) {
   # breachPositionEnsemble - Breach positions
   # surveyData - Survey IQI (with GIS)
   # breachPositionBestFit - Breach positions - Best Fit
@@ -143,11 +147,20 @@ area <- function(data) {
 
     if ((numberOfBreachTransects >= 3) &
         (numberOfBreachTransects <- totalNumberOfTransects)) {
+      if(ellipse_representative == TRUE) {
+        breachPositions_bestFit <- (as.matrix(cbind(
+          Longitude = unique(breachPositionEnsemble$breachLongitude_95thPercentile),
+          Latitude = unique(breachPositionEnsemble$breachLatitude_95thPercentile)
+        )))
+      }
+      if(ellipse_representative == FALSE) {
       breachPositions_bestFit <- (as.matrix(cbind(
         Longitude = breachPositionBestFit$breachLongitude,
         Latitude = breachPositionBestFit$breachLatitude
       )))
+      }
       ellipseResult <- "Actual ellipse"
+
     } else {
       breachPositions_bestFit <- (as.matrix(cbind(
         Longitude = c(-2, -2.1, -2.2),
@@ -196,6 +209,9 @@ area <- function(data) {
   }
   ellipse <- ellipse[[1]]
   names(fifthPercentileArea) <- NULL
+  if(ellipse_representative == TRUE) {
+  fifthPercentileArea <- st_area(ellipse)
+  }
   fifthPercentileArea <- list(fifthPercentileArea)
   fifthPercentileArea[[2]] <- packageVersion("kraken")[1]
   fifthPercentileArea[[3]] <- packageDate("kraken")[1]
