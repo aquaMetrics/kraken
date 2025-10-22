@@ -18,7 +18,7 @@
 #' probability <- probability_non_linear(demo_iqi)
 #' breach <- breach(probability)
 #' }
-breach <- function(data) {
+breach <- function(data, ellipse_representative = FALSE) {
   inSurveyData <- data[["data"]]
   geoDf <- data[["geoDf"]]
   geoDfBestFit <- data[["geoDfBestFit"]]
@@ -156,12 +156,22 @@ breach <- function(data) {
     outSurveyData <- inSurveyData
   }
   breachCoordinatesOut <- group_by(breachCoordinatesOut, .data$MCFF_Transect)
+  if(ellipse_representative == TRUE) {
+  breachCoordinatesOut <- mutate(breachCoordinatesOut,
+    "Rank" = 1:n(),
+    "breachLongitude_95thPercentile" = stats::quantile(.data$breachLongitude, probs = c(.05)),
+    "breachLatitude_95thPercentile" = stats::quantile(.data$breachLatitude, probs = c(.05)),
+    "breachDistance_95thPercentile" =  stats::quantile(.data$breachDistance, probs = c(.05))
+  )
+  }
+  if(ellipse_representative == FALSE) {
   breachCoordinatesOut <- mutate(breachCoordinatesOut,
     "Rank" = 1:n(),
     "breachLongitude_50thPercentile" = median(.data$breachLongitude),
     "breachLatitude_50thPercentile" = median(.data$breachLatitude),
     "breachDistance_50thPercentile" = median(.data$breachDistance)
   )
+  }
   breachCoordinatesOut <- ungroup(breachCoordinatesOut)
   # Return named list of outputs ----------------------------------------------
   data <- list(
