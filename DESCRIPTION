@@ -33,9 +33,6 @@ Imports:
   tibble,
   tidyr,
   uuid
-Remotes:
-  cran/argosfilter,
-  ecodata1/hera
 Depends: 
     R (>= 4.0)
 RoxygenNote: 7.3.2
