@@ -59,6 +59,23 @@ test_that("test kraken works", {
   demo_iqi <- demo_iqi[c(1,10,17,24,7,8,13,14,21,22,27,28), ]
   # remove other values
 
+  # Test all pen edge stations failing
+  demo_iqi <- kraken::demo_iqi
+  demo_iqi$IQI[1] <- 0.5
+  demo_iqi$IQI[10] <- 0.5
+  demo_iqi$IQI[17] <- 0.5
+  demo_iqi$IQI[24] <- 0.5
+  all_pen_edge_failing <- kraken(demo_iqi[c(1,10:30),], n_try = 10)
+
+  # Test only failing pen edge stations
+  demo_iqi <- kraken::demo_iqi
+  demo_iqi$IQI[1] <- 0.5
+  demo_iqi$IQI[10] <- 0.5
+  demo_iqi$IQI[17] <- 0.5
+  demo_iqi$IQI[24] <- 0.5
+  only_faling_pen_edge <- kraken(demo_iqi[c(1,10,17,24),], n_try = 10)
+
+
   reduced_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
   # reduced_pen_edge_missing$object[reduced_pen_edge_missing$question == "map"]
 
