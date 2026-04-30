@@ -22,7 +22,6 @@ breach <- function(data, ellipse_representative = FALSE) {
   inSurveyData <- data[["data"]]
   geoDf <- data[["geoDf"]]
   geoDfBestFit <- data[["geoDfBestFit"]]
-
   # Convert E/N to Lat/Lon
   set.seed(123)
 
@@ -102,6 +101,8 @@ breach <- function(data, ellipse_representative = FALSE) {
     # Data prep complete: onto the calc proper
     position <- cbind(as.numeric(geoDf$Longitude), as.numeric(geoDf$Latitude))
     bearing <- as.numeric(geoDf$Bearing)
+    # If distance/bearing is zero - set bearing as zero.
+    bearing[is.na(bearing)] <- 0
     breachDistance <- as.numeric(geoDf$D2G)
 
     # Run calculation
@@ -128,7 +129,8 @@ breach <- function(data, ellipse_representative = FALSE) {
       geoDfBestFit$Northing
     )
     geoDfBestFit <- cbind(geoDfBestFit, LatLonBestFit)
-
+    # Replace bearing with zero due to distance being zero
+    geoDfBestFit$Bearing[is.na(geoDfBestFit$Bearing)] <- 0
     # Data prep complete: onto the calc proper
     positionBestFit <- cbind(
       as.numeric(geoDfBestFit$Longitude),

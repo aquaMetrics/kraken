@@ -12,6 +12,7 @@
 #' @export
 #' @importFrom argosfilter radian
 #' @importFrom dplyr mutate group_by ungroup n select
+#' @importFrom rlang .data
 #' @examples
 #' \dontrun{
 #' stations <- consecutive_stations(demo_iqi)
