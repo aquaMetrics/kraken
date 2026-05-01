@@ -18,6 +18,12 @@
 #'   model is fitted to a maximum 50% of attempts otherwise the model is not
 #'   included. By default, n_try = 1000 and therefore 500 bootstraps are
 #'   returned if model is successfully fitted.
+#'@param ellipse_representative Calculate the ellipse based on distance to 95%
+#'  percentile of resamples on each passing status on each transect (TRUE)
+#'  rather than 95% percentile of areas predicted ellipse area resamples
+#'  (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+#'  95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+#'  exactly the area in m2.
 #' @return Data frame contain 8 variables.
 #' \describe{
 #'  \item{project_id}{Unique ID for survey –  MCFF + Date}

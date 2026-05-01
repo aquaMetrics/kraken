@@ -124,11 +124,22 @@ probability_non_linear <- function(data,
           numberOfStations, ")"
         )
     }
+
+    # If replicate samples from a single station then use average value of
+    # replicates instead
+
+    innerTransectMean <- innerTransect %>%
+      group_by(Transect, Station) %>%
+      mutate(IQI = mean(IQI))
+    innerTransectMean <- ungroup(innerTransectMean)
+    #innerTransectMean <- select(innerTransectMean, -Station_id, -original_iqi)
+    innerTransectMean <- distinct(innerTransectMean)
+
     # Find distance to Good based on 2 consecutive station rule
     if (method == "iqi") {
-      r <- rle(innerTransect$IQI >= pass_fail)
+      r <- rle(innerTransectMean$IQI >= pass_fail)
     } else {
-      r <- rle(innerTransect$IQI < pass_fail)
+      r <- rle(innerTransectMean$IQI < pass_fail)
     }
     s <- NULL
     for (j in 1:length(r$values)) {
@@ -143,7 +154,7 @@ probability_non_linear <- function(data,
 
     row_index <- which(summed == 2, arr.ind = TRUE)[1]
     if (is.na(row_index) == FALSE) {
-      reducedSamplingD2G <- innerTransect$Distance[row_index]
+      reducedSamplingD2G <- innerTransectMean$Distance[row_index]
     }
 
     # Have 2 consecutive Good stations been taken
@@ -787,8 +798,9 @@ probability_non_linear <- function(data,
         }
       } else {
         D2Gfunc <- function(x) {
-          if ((max(x$IQI) < pass_fail) & (x$IQI[nrow(x)] >= x$IQI[1])) {
-            as.numeric(x$Distance[min(which(x$IQI < pass_fail))])
+          # browser()
+          if ((min(x$IQI) < pass_fail) & (x$IQI[nrow(x)] <= x$IQI[1])) {
+            as.numeric(x$Distance[min(which(x$IQI <= pass_fail))])
           } else {
             NA
           }
@@ -810,7 +822,6 @@ probability_non_linear <- function(data,
       dontAchieveGoodPercent <- round(100 *
         length(d2g_is_na) /
         length(distanceToGoodDist$D2G), 1)
-
       bootDRCmodsUnlisted <- do.call(rbind.data.frame, bootDRCmods)
       IQIheatData <- cbind(
         "Distance" = bootDRCmodsUnlisted$Distance,
@@ -1092,6 +1103,7 @@ probability_non_linear <- function(data,
     D2Gdistr$D2Ghist[is.na(D2Gdistr$D2Ghist)] <-
       D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2Ghist)]
   }
+
   # Put outputs into list
   data <- list(
     summaryOutput,

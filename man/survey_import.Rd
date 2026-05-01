@@ -4,10 +4,12 @@
 \alias{survey_import}
 \title{Import Survey Template}
 \usage{
-survey_import(path = NULL)
+survey_import(path = NULL, spreadsheet_version = 2)
 }
 \arguments{
 \item{path}{character file path to survey template}
+
+\item{spreadsheet_version}{Version before 2024 (ish) is default '1', current version is '2'.}
 }
 \value{
 Data frame with 5 variables

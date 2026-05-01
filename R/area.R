@@ -178,6 +178,8 @@ area <- function(data, ellipse_representative = FALSE) {
                       .data$breachLongitude,
                       .data$breachLatitude)
     polygon <- bind_rows(polygon, polygon[1, ])
+    # if replicates station samples need to remove NAs
+    polygon <- polygon[complete.cases(polygon), ]
     polygon <- st_polygon(list(as.matrix(polygon)))
     polygon <- st_sfc(polygon, crs = 4326)
     polygon <- st_sf(polygon)

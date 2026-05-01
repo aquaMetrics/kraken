@@ -29,8 +29,7 @@ included. By default, n_try = 1000 and therefore 500 bootstraps are
 returned if model is successfully fitted.}
 }
 \value{
-list containing four named data frames: data, geoDf, geoDfBestFit and
-  hexdfOut.
+
 }
 \description{
 Fit the best model to calculate the distance from pen edge to where the

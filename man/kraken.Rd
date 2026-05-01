@@ -18,7 +18,8 @@ kraken(
   hera_format = FALSE,
   pass_fail = 0.64,
   method = "iqi",
-  n_try = 1000
+  n_try = 1000,
+  ellipse_representative = FALSE
 )
 }
 \arguments{

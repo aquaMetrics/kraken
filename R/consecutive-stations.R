@@ -7,6 +7,8 @@
 #' @param pass_fail Pass-fail boundary value.
 #' @param method Type of method used to analyse samples, either "iqi" or
 #'   "residue".
+#' @param average If replicates sample from a single station, should they be
+#'   average or consider separate samples.
 #' @return A named list of two data frames `sample_point_checks` and
 #'   `survey_data`
 #' @export
@@ -22,7 +24,18 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average
   # summaryOuput - Survey - Initial checks
   set.seed(123)
   stringsAsFactors <- FALSE
-
+  # Only use column needed for analysis in case name clash with calculated
+  # columns. For example if latitude column provide this column is also calculated
+  # later in this function
+  data <- select(data,
+                 Survey_date,
+                 MCFF,
+                 Transect,
+                 Station,
+                 Easting,
+                 Northing,
+                 IQI
+  )
   # If replicate values per station then return average values
   # keep original value
   data$original_iqi <- data$IQI
@@ -30,6 +43,14 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average
     group_by(Transect, Station) %>%
     mutate(IQI = mean(IQI))
   data <- ungroup(data)
+
+
+  if(average == FALSE) {
+    data$IQI <- data$original_iqi
+  } else {
+    data <- select(data, -Station_id, -original_iqi)
+    data <- distinct(data)
+  }
 
 
   if (length(unique(data$MCFF)) > 1) {
@@ -139,10 +160,19 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average
       geoDf <- cbind(Bearing = bestFitBearing, Distance = Distances)
 
       # Find distance to Good based on 2 consecutive station rule --------------
+      # If replicate samples from a single station then use average value of
+      # replicates instead
+      innerTransectMean <- innerTransect %>%
+        group_by(Transect, Station) %>%
+        mutate(IQI = mean(IQI))
+      innerTransectMean <- ungroup(innerTransectMean)
+      innerTransectMean <- select(innerTransectMean, -original_iqi)
+      innerTransectMean <- distinct(innerTransectMean)
+
       if(method == "residue") {
-      r <- rle(innerTransect$IQI < pass_fail)
+      r <- rle(innerTransectMean$IQI < pass_fail)
       } else {
-      r <- rle(innerTransect$IQI >= pass_fail)
+      r <- rle(innerTransectMean$IQI >= pass_fail)
       }
       reducedSamplingD2G <- NA
       s <- NULL
@@ -225,12 +255,6 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average
   testOutput$`WFD status`[testOutput$IQI < 0.24] <- "Bad"
   }
 
-  if(average == FALSE) {
-  data$IQI <- data$original_iqi
-  } else {
-  data <- select(data, -Station_id, -original_iqi)
-  data <- distinct(data)
-  }
   # Filter columns to only required columns
   testOutput <- dplyr::select(
     testOutput,

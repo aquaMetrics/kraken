@@ -4,7 +4,7 @@
 \alias{breach}
 \title{Breach}
 \usage{
-breach(data)
+breach(data, ellipse_representative = FALSE)
 }
 \arguments{
 \item{data}{named list of 4 data frames created by the
