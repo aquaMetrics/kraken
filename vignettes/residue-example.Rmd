@@ -15,6 +15,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(drc)
+library(ggstar)
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
@@ -25,12 +26,18 @@ knitr::opts_chunk$set(message = FALSE)
 Export data from fish farm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environment pane to import data or use `read.csv()` function and paste in file path - but replace  '\' with '/' in the path.
 
 ```{r data}
-data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
+# data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
 
-# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326.csv")
+data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326-demo.csv")
+
+# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379.csv")
+data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379-2026-04-14.csv")
+
+data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/rum1.csv")
+
 
 # Filter data for my particular farm/date of interest
-data <- dplyr::filter(data, Site.ID == "BELL1")
+ data <- dplyr::filter(data, Site.ID == "FFMC27")
 
 # Select only the columns needed for calculations
 data <- dplyr::select(data,
@@ -49,12 +56,14 @@ data <- dplyr::select(data,
 # Pivot the data into structure require for calculations
 data <- tidyr::pivot_longer(
   data,
-  cols = c("Embz-1", "Embz-2", "Embz-3"),
+  cols = c("Embz-1",
+           "Embz-2",
+           "Embz-3"),
   names_to = "Station_id", values_to = "IQI"
 )
 
 data$IQI <- as.numeric(data$IQI)
-pass_fail <- unique(data$EQS..ng.kg.)
+pass_fail <- unique(na.omit(data$EQS..ng.kg.))
 ```
 
 
@@ -66,7 +75,10 @@ Run data through calculations.
 output <- kraken::kraken(data,
   pass_fail = pass_fail,
   method = "residue",
-  loess = FALSE, n_try = 10
+#  loess = FALSE,
+#  n_try = 10,
+#   , 
+   ellipse_representative = TRUE
 )
 ```
 
@@ -85,31 +97,76 @@ Bit complicated...find which model has been used for each transect
 ```{r model}
 model <- output$object[output$question == "model_info"][[1]]
 model
+
+warnings <- output$response[grepl( "_warning", output$question)]
+warnings
 ```
 
 Model: 'Regression model fit not of sufficient quality to use' - not sure why?
 Is the model struggling to fit? Wasn't a problem with earlier test data?
 
+Not always three reps per station. Needs to be flexible. Also may use average
+value for station if two consecutive point override used.
+
 ```{r plots, eval=FALSE}
+
+
 # pivot output
-plots_data <- output %>% dplyr::filter(grepl("BELL1", location_id))
-plots_data <- plots_data %>% 
+# plots_data <- output %>% dplyr::filter(grepl("FFMC27", location_id))
+plots_data <- output %>% 
   dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
 plots_data <- distinct(plots_data)
 
+# plots_data <- pivot_wider(plots_data, names_from = question,
+#                           values_from = response)
+# plots_data$IQI <- as.numeric(plots_data$IQI)
+# plots_data$Distance <- as.numeric(plots_data$Distance)
+
+
 plots_data <- purrr::map_df(
   split(plots_data, plots_data$sample_id), function(sample) {
-  
-  
+
+  distance <- filter(sample, question == "Distance")
+  MCFF <- filter(sample, question == "MCFF_Transect")
+  if(length(sample$response[sample$question == "IQI"]) == 3) { 
+  sample <- bind_rows(sample, distance, distance, MCFF, MCFF)
+  sample <- arrange(sample, question)
+  sample$ID <- rep(1:3,3 )
+  }
+  if(length(sample$response[sample$question == "IQI"]) == 2) { 
+  sample <- bind_rows(sample, distance, MCFF)
+  sample <- arrange(sample, question)
+  sample$ID <- rep(1:2,3 )
+  }
+
+  sample <- pivot_wider(sample, names_from = question, 
+                          values_from = response)
+sample$IQI <- as.numeric(sample$IQI)
+sample$Distance <- as.numeric(sample$Distance)
   
   return(sample)
 })
 
+hex_df <- bind_rows(output$object[output$question == "hex_df"])
+hex_df$Distance <- as.numeric(hex_df$Distance)
+hex_df$IQI <- as.numeric(hex_df$IQI)
+hex_df$Transect <- as.numeric(hex_df$Transect)
+hex_df$Counts <- as.numeric(hex_df$Counts)
+hex_df$shape <- NA
+hex_df$size <- NA
+hex_df$colour <- NA
+hex_df$shape[hex_df$Source == "Prob. model"] <- "hexagon"
+hex_df$shape[hex_df$Source == "Survey data"] <- "circle"
+hex_df$size[hex_df$Source == "Prob. model"] <- 3
+hex_df$size[hex_df$Source == "Survey data"] <- 1
 
-plots_data <- pivot_wider(plots_data, names_from = question, 
-                          values_from = response)
-plots_data$IQI <- as.numeric(plots_data$IQI)
-plots_data$Distance <- as.numeric(plots_data$Distance)
+
+breach_ensemble <- bind_rows(output$object[output$question == "breachPositionEnsemble"])
+breach_ensemble <- breach_ensemble %>%
+  dplyr::select(Transect, `breachDistance_95thPercentile`) %>% 
+  distinct()
+
+
 
 p <- list()
 for(i in 1:nrow(model)) {
@@ -117,17 +174,18 @@ for(i in 1:nrow(model)) {
   plot_data <- plots_data[grepl(paste0("- ",i), plots_data$MCFF_Transect), ]
   model_type <- paste0(trimws(substr(model_plot$bestModel,1,4)), "()")
   message(model_type)
-  if(model_type == "Regr()") {
+  transect_hex <- hex_df[hex_df$Transect == i, ]
+
+  if(model_type %in% c("Insu()","Regr()")) {
   p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
   geom_point() +
-  # geom_smooth(method = "lm", linetype = 2) +
   ylab("Emmamectin PPM") +
   ggplot2::ggtitle(paste0("Site: ", unique(plot_data$project_id)),
                        subtitle = paste0(unique(plot_data$MCFF_Transect),
                                          " Model fit not of sufficient quality to use")) +
-#  facet_wrap(vars(MCFF_Transect)) +
-  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2)
-    } else {
+  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2) 
+    } 
+  if(!model_type %in% c("Insu()","Regr()")){
   p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
   geom_point() +
   geom_smooth(method = drm,
@@ -136,12 +194,41 @@ for(i in 1:nrow(model)) {
   ylab("Emmamectin PPM") +
   ggtitle(paste0("Site: ", unique(plot_data$project_id)), 
           subtitle = unique(plot_data$MCFF_Transect)) +
-  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2)
-      }
+  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2) 
+
+  } 
 }
 
 
+for(i in 1:nrow(model)) {
+  model_plot <- model[model$Transect == i, ]
+  plot_data <- plots_data[grepl(paste0("- ",i), plots_data$MCFF_Transect), ]
+  model_type <- paste0(trimws(substr(model_plot$bestModel,1,4)), "()")
+  message(model_type)
+  transect_hex <- hex_df[hex_df$Transect == i, ]
+    breach <- breach_ensemble[breach_ensemble$Transect == i, ]
+  if(!model_type %in% c("Insu()","Regr()")){
+  p[[i]] <- ggplot(aes(
+    Distance,
+  IQI, 
+  colour = Counts, fill = Counts),
+  data = transect_hex) +
+  geom_star(
+  starshape = transect_hex$shape,  size = transect_hex$size) +
+  ylab("Emmamectin PPM") +
+  ggtitle(paste0("Site: ", unique(plot_data$project_id)), 
+          subtitle = unique(plot_data$MCFF_Transect)) +
+  geom_hline(yintercept = pass_fail, colour = "green", linewidth = 1, linetype = 2) +
+  geom_vline(xintercept = breach$breachDistance_95thPercentile,
+            colour = "black", 
+            linetype = 2,
+            linewidth = 1) +
+    scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) +
+ scale_fill_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26"))
+  } 
+}
 
+p
 ```
 
 
@@ -151,7 +238,7 @@ output$response[output$question == "area_95_confidence"]
 
 (100/ 196238 )  * 327687.555651631
 
-
+(100/ 177068 )  * 108298
 
 ```
 

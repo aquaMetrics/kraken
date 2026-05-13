@@ -8,7 +8,8 @@ test_that("test kraken works", {
   # Test failing! Appears if model can't be fitted but 7 stations available then
   # this state not caught correctly by if statements.
   # demo_iqi <- kraken::demo_iqi
-  # demo_iqi$IQI[1:9] <- 0.5
+  # demo_iqi$IQI[1:6] <- 0.5
+  # demo_iqi <-   demo_iqi[c(1:6,10:30), ]
   # test_all_the_same <- kraken(demo_iqi)
   # testthat::expect_equal(test_all_the, TRUE)
 
@@ -47,7 +48,21 @@ test_that("test kraken works", {
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
   all_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
-  # all_pen_edge_missing$object[all_pen_edge_missing$question == "map"]
+
+  #  Test all pen edge missing IQI scores and one transect with data to fit
+  #  model
+  demo_iqi <- kraken::demo_iqi
+  demo_iqi$IQI[1] <- NA
+  demo_iqi$IQI[2:6] <- c(0.5, 0.51, 0.53, 0.55, 0.60)
+  demo_iqi$IQI[10] <- NA
+  demo_iqi$IQI[17] <- NA
+  demo_iqi$IQI[24] <- NA
+  all_pen_edge_missing <- kraken(demo_iqi)
+  # Passing at 190m but map distance >209m why?
+  # Could be measuring from station 2 not the pen edge? Or something strange
+  # with ellipse? (but unlikely)? Total area is impacted by this difference.
+  # Area is bigger than reduced sampling area which is unexpected
+
 
   # Test all pen edge missing IQI scores and reduced sampling
   demo_iqi <- kraken::demo_iqi
@@ -55,8 +70,14 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- NA
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
+  demo_iqi$IQI[7] <- 0.5
+  demo_iqi$IQI[14] <- 0.5
+  demo_iqi$IQI[21] <- 0.5
+  demo_iqi$IQI[28] <- 0.5
 
-  demo_iqi <- demo_iqi[c(1,10,17,24,7,8,13,14,21,22,27,28), ]
+  demo_iqi <- demo_iqi[c( 1,7,8,9, 10,14,15,16,  17, 21,22,23,  24,28,29,30), ]
+  missing_pen_edge_reduced <- kraken(demo_iqi)
+
   # remove other values
 
   # Test all pen edge stations failing
@@ -76,6 +97,11 @@ test_that("test kraken works", {
   only_faling_pen_edge <- kraken(demo_iqi[c(1,10,17,24),], n_try = 10)
 
 
+  # If less than 7 stations is a model fitted?
+
+  # Check if pen edge being used for start of distance to good measurement for
+  # both two consecutive stations and model fitting approaches?
+
   reduced_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
   # reduced_pen_edge_missing$object[reduced_pen_edge_missing$question == "map"]
 
@@ -84,7 +110,7 @@ test_that("test kraken works", {
 
 test_that("test kraken works for chemistry data", {
 
- # Create chemistry data with 3 replicates per station
+  # Create chemistry data with 3 replicates per station
   test_data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
 
   # Filter data for my particular farm/date of interest
@@ -108,10 +134,10 @@ test_that("test kraken works for chemistry data", {
                                    cols = c("Embz-1", "Embz-2", "Embz-3"),
                                    names_to = "Station_id", values_to = "IQI")
 
- test_chem  <- kraken(test_data,
-                      pass_fail = 768,
-                      method = "residue",
-                      loess = TRUE)
+  test_chem  <- kraken(test_data,
+                       pass_fail = 768,
+                       method = "residue",
+                       loess = TRUE)
 
 })
 

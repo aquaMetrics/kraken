@@ -1,7 +1,7 @@
 #' Import Survey Template
 #'
 #' @param path character file path to survey template
-#'
+#' @param spreadsheet_version Version before 2024 (ish) is default '1', current version is '2'.
 #' @return Data frame with 5 variables
 #' \describe{
 #' \item{project_id}{character project id}
@@ -22,11 +22,10 @@
 #' data <- survey_import(file)
 #' }
 #'
-survey_import <- function(path = NULL) {
+survey_import <- function(path = NULL, spreadsheet_version = 2) {
   # Survey metadata ------------------------------------------------------------
   # Top level info about the survey for example company, site, licence etc
   cover <- suppressMessages(readxl::read_xlsx(path, sheet = "1. Cover Sheet"))
-
   survey <- tibble::tibble(
     question = unlist(c(
       cover[10:28, 1],
@@ -49,13 +48,20 @@ survey_import <- function(path = NULL) {
 
   transects <- rep(12, 7)
   transects <- transects * c(1, 2, 3, 4, 5, 6, 7)
+  if(spreadsheet_version == 2) {
+    transects <- c(36, 52, 68, 84, 116, 132)
+  }
   samples <- purrr::map_df(transects, function(transect) {
+    if(spreadsheet_version == 1) {
     if (transect == 84) {
       sample_1 <- cover[(34 + transect - 12):(34 + transect), c(1, 3:8)]
     } else {
       sample_1 <- cover[(34 + transect - 12):(34 + transect - 2), c(1, 3:8)]
     }
-
+    }
+      if(spreadsheet_version == 2) {
+      sample_1 <- cover[( transect):(transect + 14), c(1, 3:8)]
+    }
     names(sample_1) <- as.character(sample_1[1, ])
     sample_1 <- sample_1[2:nrow(sample_1), ]
     sample_long <- tidyr::pivot_longer(sample_1,
@@ -95,6 +101,8 @@ survey_import <- function(path = NULL) {
     "14. Add-Data"
   )
   # Loop through sheets and format
+  sheets <- readxl::excel_sheets(path)
+  data_sheets_ref <- data_sheets_ref[data_sheets_ref %in% sheets ]
   data_sheets <- purrr::map_df(data_sheets_ref, function(data_sheet) {
     t1_data <- suppressMessages(readxl::read_xlsx(path, sheet = data_sheet))
     names(t1_data) <- as.character(t1_data[2, ])
@@ -125,6 +133,8 @@ survey_import <- function(path = NULL) {
     "15. Add-Fauna"
   )
   # Loop through fauna worksheets and format data
+  sheets <- readxl::excel_sheets(path)
+  fauna_sheets_ref <- fauna_sheets_ref[fauna_sheets_ref %in% sheets ]
   fauna_sheets <- purrr::map_df(fauna_sheets_ref, function(data_sheet) {
     fauna <- suppressMessages(readxl::read_xlsx(path, sheet = data_sheet))
     # Format 'number of replicates' info

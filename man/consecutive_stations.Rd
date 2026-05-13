@@ -4,7 +4,7 @@
 \alias{consecutive_stations}
 \title{Consecutive Stations}
 \usage{
-consecutive_stations(data, pass_fail = 0.64, method = "iqi")
+consecutive_stations(data, pass_fail = 0.64, method = "iqi", average = FALSE)
 }
 \arguments{
 \item{data}{Data frame with survey data}

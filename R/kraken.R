@@ -18,6 +18,12 @@
 #'   model is fitted to a maximum 50% of attempts otherwise the model is not
 #'   included. By default, n_try = 1000 and therefore 500 bootstraps are
 #'   returned if model is successfully fitted.
+#'@param ellipse_representative Calculate the ellipse based on distance to 95%
+#'  percentile of resamples on each passing status on each transect (TRUE)
+#'  rather than 95% percentile of areas predicted ellipse area resamples
+#'  (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+#'  95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+#'  exactly the area in m2.
 #' @return Data frame contain 8 variables.
 #' \describe{
 #'  \item{project_id}{Unique ID for survey –  MCFF + Date}
@@ -87,7 +93,8 @@ kraken <- function(data,
                    hera_format = FALSE,
                    pass_fail = 0.64,
                    method = "iqi",
-                   n_try = 1000) {
+                   n_try = 1000,
+                   ellipse_representative = FALSE) {
 
   if (hera_format == TRUE) {
     # If input data from kraken::survey_import() change back into kraken data
@@ -131,8 +138,8 @@ kraken <- function(data,
       overrideBearing3,
       overrideBearing4
     )
-    breachs <- breach(overrides)
-    areas <- area(breachs)
+    breachs <- breach(overrides, ellipse_representative)
+    areas <- area(breachs, ellipse_representative)
     # Pivot output into long format --------------------------------------------
     output <- convert_hera(method, data, overrides, breachs, areas)
 

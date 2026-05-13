@@ -4,11 +4,16 @@
 \alias{area}
 \title{Ellipse Area Distribution}
 \usage{
-area(data)
+area(data, ellipse_representative = FALSE)
 }
 \arguments{
 \item{data}{named list of 3 data frames output from the `breach()` function:
 `surveyData`, `breachPositionEnsemble` and `breachPositionBestFit`.}
+
+\item{ellipse_representative}{set to TRUE to return ellipse accurately
+representing 95% of the area using 95% distance to passing status on each
+transect. The default is FALSE, returning an indicative ellipse based on a
+single fitting of the model.}
 }
 \value{
 Named list of 7 objects:

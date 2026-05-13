@@ -3,6 +3,6 @@ test_that("survey import works", {
                       "demo-data/220421-SelfMon-N4952-CAV1-Enhanced.xlsx",
                       package = "kraken"
   )
-  data <- survey_import(file)
+  data <- survey_import(file,  spreadsheet_version = 1)
 })
 
