@@ -109,8 +109,19 @@ probability_non_linear <- function(data,
     # 1 Initial transect checks ------------------------------------------------
     innerTransect <- innerTransect[order(innerTransect$Distance), ]
 
+    # If replicate samples from a single station then use average value of
+    # replicates instead
+
+    innerTransectMean <- innerTransect %>%
+      group_by(Transect, Station) %>%
+      mutate(IQI = mean(IQI))
+    innerTransectMean <- ungroup(innerTransectMean)
+    #innerTransectMean <- select(innerTransectMean, -Station_id, -original_iqi)
+    innerTransectMean <- distinct(innerTransectMean)
+
+
     # Check if 7 stations taken
-    numberOfStations <- length(innerTransect$IQI)
+    numberOfStations <- length(innerTransectMean$IQI)
     if (numberOfStations < 7) {
       stationNumber <-
         paste0(
@@ -125,15 +136,7 @@ probability_non_linear <- function(data,
         )
     }
 
-    # If replicate samples from a single station then use average value of
-    # replicates instead
 
-    innerTransectMean <- innerTransect %>%
-      group_by(Transect, Station) %>%
-      mutate(IQI = mean(IQI))
-    innerTransectMean <- ungroup(innerTransectMean)
-    #innerTransectMean <- select(innerTransectMean, -Station_id, -original_iqi)
-    innerTransectMean <- distinct(innerTransectMean)
 
     # Find distance to Good based on 2 consecutive station rule
     if (method == "iqi") {

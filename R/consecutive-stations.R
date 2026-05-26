@@ -83,8 +83,16 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average
       innerTransect <- data[data$MCFF_Transect == i, ]
       innerTransect <- innerTransect[order(innerTransect$Station), ]
 
+      # If replicate samples from a single station then use average value of
+      # replicates instead
+      innerTransectMean <- innerTransect %>%
+        group_by(Transect, Station) %>%
+        mutate(IQI = mean(IQI))
+      innerTransectMean <- ungroup(innerTransectMean)
+      innerTransectMean <- select(innerTransectMean, -original_iqi)
+      innerTransectMean <- distinct(innerTransectMean)
       # Check if 7 stations taken ----------------------------------------------
-      numberOfStations <- length(innerTransect$IQI)
+      numberOfStations <- length(innerTransectMean$IQI)
       if (numberOfStations < 7) {
         stationNumber <-
           paste0(
@@ -160,14 +168,6 @@ consecutive_stations <- function(data, pass_fail = 0.64, method = "iqi", average
       geoDf <- cbind(Bearing = bestFitBearing, Distance = Distances)
 
       # Find distance to Good based on 2 consecutive station rule --------------
-      # If replicate samples from a single station then use average value of
-      # replicates instead
-      innerTransectMean <- innerTransect %>%
-        group_by(Transect, Station) %>%
-        mutate(IQI = mean(IQI))
-      innerTransectMean <- ungroup(innerTransectMean)
-      innerTransectMean <- select(innerTransectMean, -original_iqi)
-      innerTransectMean <- distinct(innerTransectMean)
 
       if(method == "residue") {
       r <- rle(innerTransectMean$IQI < pass_fail)

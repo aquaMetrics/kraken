@@ -32,7 +32,8 @@ Imports:
   sp,
   tibble,
   tidyr,
-  uuid
+  uuid,
+  ggstar
 Depends: 
     R (>= 4.0)
 RoxygenNote: 7.3.2
