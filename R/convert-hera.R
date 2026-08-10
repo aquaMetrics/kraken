@@ -45,10 +45,10 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
   data$survey_data <- dplyr::mutate_all(data$survey_data, as.character)
   survey_data <- tidyr::pivot_longer(data$survey_data,
     cols = c(
-      -.data$Transect,
-      -.data$Station,
-      -.data$MCFF,
-      -.data$Survey_date
+      -Transect,
+      -Station,
+      -MCFF,
+      -Survey_date
     ),
     values_to = "response",
     names_to = "question"
@@ -98,13 +98,13 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
   )
 
 
-  distance_to_good <- dplyr::group_by(overrides$geoDf, .data$Transect)
+  distance_to_good <- dplyr::group_by(overrides$geoDf, Transect)
   distance_to_good <- dplyr::summarise(distance_to_good,
     "Median distance to Good (m)" =
       as.integer(
         round(
           median(
-            as.numeric(.data$`D2Ghist`)
+            as.numeric(`D2Ghist`)
           )
         )
       )
@@ -114,7 +114,7 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     "response" = NA,
     "object" = list(distance_to_good)
   )
-  if (all(is.null(area$warnings))) {
+  if (!all(names(area) %in% c("warnings"))){
     warnings <- tibble::tibble(
       "question" = "ellipse_warnings",
       "response" = NA,
@@ -149,24 +149,24 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
   Survey_date <- data$survey_data$Survey_date[1]
   output <- dplyr::mutate(output,
     sample_id = paste0(
-      .data$Transect,
-      .data$Station,
-      .data$MCFF,
-      as.numeric(.data$Survey_date)
+      Transect,
+      Station,
+      MCFF,
+      as.numeric(Survey_date)
     ),
     "project_id" = project_id,
-    location_id = paste0(.data$MCFF, .data$Transect, .data$Station),
+    location_id = paste0(MCFF, Transect, Station),
     "Survey_date" = Survey_date
   )
 
   output <- dplyr::select(output,
-    .data$project_id,
-    .data$location_id,
-    .data$sample_id,
-    "date_taken" = .data$Survey_date,
-    .data$question,
-    .data$response,
-    .data$object
+    project_id,
+    location_id,
+    sample_id,
+    "date_taken" = Survey_date,
+    question,
+    response,
+    object
   )
   output$parameter <- "benthic survey"
   return(output)
