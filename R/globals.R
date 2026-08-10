@@ -1,0 +1,31 @@
+utils::globalVariables(
+  c(
+    "Bearing",
+    "breachLatitude",
+    "breachLongitude",
+    "D2Ghist",
+    "Distance",
+    "Easting",
+    "IQI",
+    "Latitude",
+    "location_id",
+    "Longitude",
+    "mean_bearing",
+    "MCFF",
+    "MCFF_Transect",
+    "Northing",
+    "Number of stations per transect",
+    "object",
+    "original_iqi",
+    "question",
+    "quickBearing",
+    "response",
+    "sample_id",
+    "Station",
+    "Station_id",
+    "status",
+    "Survey_date",
+    "Transect",
+    "WFD status"
+  )
+)
