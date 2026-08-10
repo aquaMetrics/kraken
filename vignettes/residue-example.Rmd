@@ -16,7 +16,7 @@ library(tidyr)
 library(ggplot2)
 library(drc)
 library(ggstar)
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
 ```
@@ -31,13 +31,13 @@ Export data from fish farm database as .csv file. Save locally and use the 'Impo
 data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326-demo.csv")
 
 # data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379.csv")
-data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379-2026-04-14.csv")
+#data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379-2026-04-14.csv")
 
-data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/rum1.csv")
+# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/rum1.csv")
 
 
 # Filter data for my particular farm/date of interest
- data <- dplyr::filter(data, Site.ID == "FFMC27")
+# data <- dplyr::filter(data, Site.ID == "FFMC27")
 
 # Select only the columns needed for calculations
 data <- dplyr::select(data,
@@ -71,44 +71,52 @@ pass_fail <- unique(na.omit(data$EQS..ng.kg.))
 
 Run data through calculations.
 
-```{r run-kraken}
+```{r run-kraken, include=FALSE}
 output <- kraken::kraken(data,
   pass_fail = pass_fail,
   method = "residue",
-#  loess = FALSE,
-#  n_try = 10,
-#   , 
-   ellipse_representative = TRUE
+  ellipse_representative = TRUE
 )
 ```
 
 ## Map
 
-```{r map}
+```{r map, fig.width=5, fig.height=5}
 map <- output$object[output$question == "map"]
-map
+map[[1]]
 ```
 
+### Models
+
+Display which model or reduced analysis options have been used for each transect. 
+
+```{r model}
+model <- output$object[output$question == "model_info"][[1]]
+model <- select(model, -MCFF, -Transect)
+knitr::kable(model)
+```
+
+
+### Warnings
+
+Display Warnings or return NA if no warnings returned. 
+
+```{r warnings}
+warnings <- output$response[grepl( "_warning", output$question)]
+knitr::kable(warnings)
+```
+
+
 ## Including Plots
+
 
 Need to create a plot of the regression line based on the optimal model fitted...
 Bit complicated...find which model has been used for each transect
 
-```{r model}
-model <- output$object[output$question == "model_info"][[1]]
-model
-
-warnings <- output$response[grepl( "_warning", output$question)]
-warnings
-```
-
-Model: 'Regression model fit not of sufficient quality to use' - not sure why?
-Is the model struggling to fit? Wasn't a problem with earlier test data?
-
 Not always three reps per station. Needs to be flexible. Also may use average
 value for station if two consecutive point override used.
 
-```{r plots, eval=FALSE}
+```{r plots, eval=TRUE, fig.height=5, fig.width=5}
 
 
 # pivot output
@@ -118,14 +126,13 @@ plots_data <- output %>%
 plots_data <- distinct(plots_data)
 
 # plots_data <- pivot_wider(plots_data, names_from = question,
-#                           values_from = response)
+#                         values_from = response)
 # plots_data$IQI <- as.numeric(plots_data$IQI)
 # plots_data$Distance <- as.numeric(plots_data$Distance)
 
 
 plots_data <- purrr::map_df(
   split(plots_data, plots_data$sample_id), function(sample) {
-
   distance <- filter(sample, question == "Distance")
   MCFF <- filter(sample, question == "MCFF_Transect")
   if(length(sample$response[sample$question == "IQI"]) == 3) { 
@@ -208,7 +215,7 @@ for(i in 1:nrow(model)) {
   transect_hex <- hex_df[hex_df$Transect == i, ]
     breach <- breach_ensemble[breach_ensemble$Transect == i, ]
   if(!model_type %in% c("Insu()","Regr()")){
-  p[[i]] <- ggplot(aes(
+  p <- ggplot(aes(
     Distance,
   IQI, 
   colour = Counts, fill = Counts),
@@ -223,12 +230,13 @@ for(i in 1:nrow(model)) {
             colour = "black", 
             linetype = 2,
             linewidth = 1) +
-    scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) +
- scale_fill_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26"))
-  } 
+   scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) +
+  scale_fill_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26"))
+  }
+  print(p)
 }
 
-p
+
 ```
 
 
