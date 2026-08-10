@@ -19,7 +19,8 @@ kraken(
   pass_fail = 0.64,
   method = "iqi",
   n_try = 1000,
-  ellipse_representative = FALSE
+  ellipse_representative = FALSE,
+  use_mean_bearing = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,9 @@ rather than 95% percentile of areas predicted ellipse area resamples
 (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
 95% area m2 exactly. Otherwise, the ellipse polygon does not represent
 exactly the area in m2.}
+
+\item{use_mean_bearing}{Use bearing between the pen edge stations and the
+mean coordinate of stations excluding the pen edge.}
 }
 \value{
 Data frame contain 8 variables.

@@ -11,6 +11,13 @@ breach(data, ellipse_representative = FALSE)
 `probability_non_linear` function. These are:  `data` (survey), `geoDf`
 (distances to good),`geoDfBestFit` (best fit distance) to good and
 `hexdfOut` (hexagon heat map).}
+
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95%
+percentile of resamples on each passing status on each transect (TRUE)
+rather than 95% percentile of areas predicted ellipse area resamples
+(FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+exactly the area in m2.}
 }
 \value{
 Named list containing 3 dataframes: `surveyData`,

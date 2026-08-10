@@ -14,7 +14,8 @@ assess(
   overrideBearing2 = NA,
   overrideBearing3 = NA,
   overrideBearing4 = NA,
-  loess = FALSE
+  loess = FALSE,
+  use_mean_bearing = FALSE
 )
 }
 \arguments{
@@ -48,6 +49,9 @@ assess(
 \item{overrideBearing4}{Optional override bearing Transect 4}
 
 \item{loess}{Use loess model.}
+
+\item{use_mean_bearing}{Use bearing between the pen edge stations and the
+mean coordinate of stations excluding the pen edge.}
 }
 \value{
 A named list containing the fifth percentile of the modeled area in

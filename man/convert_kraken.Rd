@@ -7,7 +7,7 @@
 convert_kraken(data)
 }
 \arguments{
-\item{data}{}
+\item{data}{A dataframe from the output of `survey_import()` function.}
 }
 \value{
 dataframe

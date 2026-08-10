@@ -29,7 +29,15 @@ included. By default, n_try = 1000 and therefore 500 bootstraps are
 returned if model is successfully fitted.}
 }
 \value{
-
+list containing four named data frames: data, geoDf, geoDfBestFit and
+  hexdfOut.
+\describe{
+ \item{data}{Summary output of the models fitted for each transect}
+ \item{geoDf}{All resample predictions for distance to passing status}
+ \item{geoDfBestFit}{Best fit prediction at 95% confidence level for
+ distance to passing status based on fitting the model a single time}
+ \item{hexdfOut.}{hexagon heat map of resample predictions}
+ }
 }
 \description{
 Fit the best model to calculate the distance from pen edge to where the

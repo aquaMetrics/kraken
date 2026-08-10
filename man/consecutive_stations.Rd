@@ -4,7 +4,13 @@
 \alias{consecutive_stations}
 \title{Consecutive Stations}
 \usage{
-consecutive_stations(data, pass_fail = 0.64, method = "iqi", average = FALSE)
+consecutive_stations(
+  data,
+  pass_fail = 0.64,
+  method = "iqi",
+  average = FALSE,
+  use_mean_bearing = FALSE
+)
 }
 \arguments{
 \item{data}{Data frame with survey data}
@@ -13,6 +19,12 @@ consecutive_stations(data, pass_fail = 0.64, method = "iqi", average = FALSE)
 
 \item{method}{Type of method used to analyse samples, either "iqi" or
 "residue".}
+
+\item{average}{If replicates sample from a single station, should they be
+average or consider separate samples.}
+
+\item{use_mean_bearing}{Use bearing based on the mean of all the
+bearings measured from pen edge to each station.}
 }
 \value{
 A named list of two data frames `sample_point_checks` and
