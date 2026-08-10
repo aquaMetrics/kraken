@@ -24,6 +24,8 @@
 #'  (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
 #'  95% area m2 exactly. Otherwise, the ellipse polygon does not represent
 #'  exactly the area in m2.
+#' @param use_mean_bearing Use bearing between the pen edge stations and the
+#'   mean coordinate of stations excluding the pen edge.
 #' @return Data frame contain 8 variables.
 #' \describe{
 #'  \item{project_id}{Unique ID for survey –  MCFF + Date}
@@ -72,7 +74,6 @@
 #'  question}
 #' }
 #' @export
-#' @importFrom rlang .data
 #' @importFrom dplyr mutate case_when select filter distinct
 #' @importFrom magrittr `%>%`
 #' @importFrom tidyr pivot_wider
@@ -80,31 +81,31 @@
 #' \dontrun{
 #' probability <- kraken(demo_iqi, loess = TRUE)
 #' }
-kraken <- function(data,
-                   overrideTransect1 = NA,
-                   overrideTransect2 = NA,
-                   overrideTransect3 = NA,
-                   overrideTransect4 = NA,
-                   overrideBearing1 = NA,
-                   overrideBearing2 = NA,
-                   overrideBearing3 = NA,
-                   overrideBearing4 = NA,
-                   loess = FALSE,
-                   hera_format = FALSE,
-                   pass_fail = 0.64,
-                   method = "iqi",
-                   n_try = 1000,
-                   ellipse_representative = FALSE) {
-
+kraken <- function(
+  data,
+  overrideTransect1 = NA,
+  overrideTransect2 = NA,
+  overrideTransect3 = NA,
+  overrideTransect4 = NA,
+  overrideBearing1 = NA,
+  overrideBearing2 = NA,
+  overrideBearing3 = NA,
+  overrideBearing4 = NA,
+  loess = FALSE,
+  hera_format = FALSE,
+  pass_fail = 0.64,
+  method = "iqi",
+  n_try = 1000,
+  ellipse_representative = FALSE,
+  use_mean_bearing = FALSE
+) {
   if (hera_format == TRUE) {
     # If input data from kraken::survey_import() change back into kraken data
     # 'standard'
     data <- convert_kraken(data)
   }
-
   # Need unique survey_id
-  data$survey_id <- paste0(data$MCFF, "-", as.numeric(data$Survey_date))
-
+  data$survey_id <- paste0(data$MCFF, "-", data$Survey_date)
   # Average values for each station
   # if(method == "residue") {
   # data <- group_by(data, Transect, Station) %>%
@@ -115,12 +116,15 @@ kraken <- function(data,
   # }
   # Loop to run through multiple surveys
   all_output <- purrr::map_df(split(data, data$survey_id), function(data) {
+    data <- consecutive_stations(
+      data,
+      pass_fail = pass_fail,
+      method = method,
+      use_mean_bearing = use_mean_bearing
+    )
 
-    data <- consecutive_stations(data,
-                                 pass_fail = pass_fail,
-                                 method = method)
-
-    probs <- probability_non_linear(data$survey_data,
+    probs <- probability_non_linear(
+      data$survey_data,
       loess = loess,
       pass_fail = pass_fail,
       method = method,
