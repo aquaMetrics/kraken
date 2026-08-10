@@ -25,6 +25,8 @@
 #' @param overrideBearing3 Optional override bearing Transect 3
 #' @param overrideBearing4 Optional override bearing Transect 4
 #' @param loess Use loess model.
+#' @param use_mean_bearing Use bearing between the pen edge stations and the
+#'   mean coordinate of stations excluding the pen edge.
 #' @return A named list containing the fifth percentile of the modeled area in
 #'   meters, package version and package date.
 #' @export
@@ -42,8 +44,9 @@ assess <- function(data,
                    overrideBearing2 = NA,
                    overrideBearing3 = NA,
                    overrideBearing4 = NA,
-                   loess = FALSE) {
-  data <- consecutive_stations(data)
+                   loess = FALSE,
+                   use_mean_bearing = FALSE) {
+  data <- consecutive_stations(data, use_mean_bearing = use_mean_bearing)
   probs <- probability_non_linear(data$survey_data, loess = loess)
   overrides <- override(
     probs,
