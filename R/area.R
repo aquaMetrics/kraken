@@ -26,7 +26,6 @@
 #' @importFrom sf st_polygon st_sf st_sfc st_area
 #' @importFrom dplyr select bind_rows distinct
 #' @importFrom utils packageDate packageVersion
-#' @importFrom rlang .data
 #' @examples
 #' \dontrun{
 #' probability <- probability_non_linear(demo_iqi)
@@ -39,7 +38,6 @@ area <- function(data, ellipse_representative = FALSE) {
   # breachPositionEnsemble - Breach positions
   # surveyData - Survey IQI (with GIS)
   # breachPositionBestFit - Breach positions - Best Fit
-
   surveyData <- data[["surveyData"]]
   breachPositionEnsemble <- data[["breachPositionEnsemble"]]
   breachPositionBestFit <- data[["breachPositionBestFit"]]
@@ -59,9 +57,11 @@ area <- function(data, ellipse_representative = FALSE) {
   fifthPercentileAreaDynamic <- rep(NA, length(transectCombinations))
   fifthPercentileArea <- 0
 
-  if (is.null(breachPositionEnsemble) ||
+  if (
+    is.null(breachPositionEnsemble) ||
       nrow(breachPositionEnsemble) == 0 ||
-      sum(!is.na(breachPositionBestFit$breachDistance)) < 3) {
+      sum(!is.na(breachPositionBestFit$breachDistance)) < 3
+  ) {
     ellipseArea <- data.frame(Area = NULL)
     outDf <- data.frame(outDf = NULL)
     ellipseResult <- "Dummy ellipse"
@@ -104,7 +104,7 @@ area <- function(data, ellipse_representative = FALSE) {
         names(actualEllipse_i) <- c("Run", "Longitude", "Latitude")
         # You need first to close your polygon
         actualEllipse_i <- distinct(actualEllipse_i[, 2:3])
-        actualEllipse_i <- rbind(actualEllipse_i[, ], actualEllipse_i[1, ])
+        actualEllipse_i <- rbind(actualEllipse_i[,], actualEllipse_i[1, ])
         ellipseAsPolygon_i <- st_sf(
           st_sfc(st_polygon(list(as.matrix(actualEllipse_i)))),
           crs = 4326
@@ -115,17 +115,15 @@ area <- function(data, ellipse_representative = FALSE) {
         )
         ellipseArea <- rbind(ellipseArea, ellipseArea_i)
         fifthPercentileAreaDynamic[i] <-
-          stats::quantile(as.vector(ellipseArea$Area),
-                          probs = c(.05)
-          )
+          stats::quantile(as.vector(ellipseArea$Area), probs = c(.05))
       }
     }
 
-    fifthPercentileArea <- stats::quantile(as.vector(ellipseArea$Area),
-                                           probs = c(.05)
+    fifthPercentileArea <- stats::quantile(
+      as.vector(ellipseArea$Area),
+      probs = c(.05)
     )
     newOuterGeometry <- function(inputDf) {
-
       ## select number of points
       pts <- nrow(inputDf)
       ## setup a raw connection and connection object
@@ -144,23 +142,27 @@ area <- function(data, ellipse_representative = FALSE) {
       }
       rawConnectionValue(rc)
     } ## end of new outer geometry
-
-    if ((numberOfBreachTransects >= 3) &
-        (numberOfBreachTransects <- totalNumberOfTransects)) {
-      if(ellipse_representative == TRUE) {
+    if (
+      (numberOfBreachTransects >= 3) &
+        (numberOfBreachTransects == totalNumberOfTransects)
+    ) {
+      if (ellipse_representative == TRUE) {
         breachPositions_bestFit <- (as.matrix(cbind(
-          Longitude = unique(breachPositionEnsemble$breachLongitude_95thPercentile),
-          Latitude = unique(breachPositionEnsemble$breachLatitude_95thPercentile)
+          Longitude = unique(
+            breachPositionEnsemble$breachLongitude_95thPercentile
+          ),
+          Latitude = unique(
+            breachPositionEnsemble$breachLatitude_95thPercentile
+          )
         )))
       }
-      if(ellipse_representative == FALSE) {
-      breachPositions_bestFit <- (as.matrix(cbind(
-        Longitude = breachPositionBestFit$breachLongitude,
-        Latitude = breachPositionBestFit$breachLatitude
-      )))
+      if (ellipse_representative == FALSE) {
+        breachPositions_bestFit <- (as.matrix(cbind(
+          Longitude = breachPositionBestFit$breachLongitude,
+          Latitude = breachPositionBestFit$breachLatitude
+        )))
       }
       ellipseResult <- "Actual ellipse"
-
     } else {
       breachPositions_bestFit <- (as.matrix(cbind(
         Longitude = c(-2, -2.1, -2.2),
@@ -174,9 +176,7 @@ area <- function(data, ellipse_representative = FALSE) {
     ))
 
     # polygon for development purposes
-    polygon <- select(breachPositionBestFit,
-                      .data$breachLongitude,
-                      .data$breachLatitude)
+    polygon <- select(breachPositionBestFit, breachLongitude, breachLatitude)
     polygon <- bind_rows(polygon, polygon[1, ])
     # if replicates station samples need to remove NAs
     polygon <- polygon[complete.cases(polygon), ]
@@ -189,7 +189,7 @@ area <- function(data, ellipse_representative = FALSE) {
     # You need first to close your polygon
     actualEllipse_bestFit <- distinct(actualEllipse_bestFit)
     actualEllipse_bestFit <- rbind(
-      actualEllipse_bestFit[, ],
+      actualEllipse_bestFit[,],
       actualEllipse_bestFit[1, ]
     )
 
@@ -211,23 +211,26 @@ area <- function(data, ellipse_representative = FALSE) {
   }
   ellipse <- ellipse[[1]]
   names(fifthPercentileArea) <- NULL
-  if(ellipse_representative == TRUE) {
-  fifthPercentileArea <- st_area(ellipse)
+  if (ellipse_representative == TRUE) {
+    fifthPercentileArea <- st_area(ellipse)
   }
   fifthPercentileArea <- list(fifthPercentileArea)
   fifthPercentileArea[[2]] <- packageVersion("kraken")[1]
   fifthPercentileArea[[3]] <- packageDate("kraken")[1]
   names(fifthPercentileArea) <- c("5%", "package version", "package date")
-  data <- list(ellipse,
-               polygon,
-               fifthPercentileArea,
-               outDf,
-               list(warning2,warning2))
-  names(data) <- c("ellipse",
-                   "polygon",
-                   "fifthPercentileArea",
-                   "spotfire_ellipse",
-                   "warnings")
+  data <- list(
+    ellipse,
+    polygon,
+    fifthPercentileArea,
+    outDf,
+    list(warning2, warning2)
+  )
+  names(data) <- c(
+    "ellipse",
+    "polygon",
+    "fifthPercentileArea",
+    "spotfire_ellipse",
+    "warnings"
+  )
   return(data)
 }
-
