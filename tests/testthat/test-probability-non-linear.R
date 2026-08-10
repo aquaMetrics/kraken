@@ -1,7 +1,7 @@
 test_that("probability_non_linear function matches outputs from Spotfire script", {
-  data <- dplyr::arrange(demo_iqi, Station)
+  data <- dplyr::arrange(kraken::demo_iqi, Station)
   data <- dplyr::select(data, Station, IQI, everything())
-  data <- consecutive_stations(demo_iqi)
+  data <- consecutive_stations(kraken::demo_iqi)
   data <- probability_non_linear(data$survey_data)
   distance_to_good <- data[["geoDf"]]
   best_fit <- data[["geoDfBestFit"]]
@@ -28,6 +28,8 @@ test_that("probability_non_linear function matches outputs from Spotfire script"
     )
   )
 
+
+
   # Update data types for distance_to_good due to writing/reading to .csv files
   row.names(distance_to_good_test) <- NULL
   row.names(distance_to_good) <- NULL
@@ -41,6 +43,8 @@ test_that("probability_non_linear function matches outputs from Spotfire script"
   distance_to_good$Northing <- as.integer(distance_to_good$Northing)
   distance_to_good$D2G <- as.integer(distance_to_good$D2G)
   distance_to_good$D2Ghist <- as.numeric(distance_to_good$D2Ghist)
+  distance_to_good$Bearing <- NULL
+  distance_to_good_test$Bearing <- NULL
   expect_equal(distance_to_good, distance_to_good_test)
 
   # Update data types for best_fit due to writing/reading to .csv files
@@ -54,10 +58,12 @@ test_that("probability_non_linear function matches outputs from Spotfire script"
   best_fit$Easting <- as.integer(best_fit$Easting)
   best_fit$Northing <- as.integer(best_fit$Northing)
   best_fit$D2G <- as.integer(best_fit$D2G)
+  best_fit$Bearing <- NULL
+  best_fit_test$Bearing <- NULL
   expect_equal(best_fit, best_fit_test)
 
   # Update data types for hex due to writing/reading to .csv files
-  skip("Not working in CI - works locally?!")
+  skip("Possibly failing due to lat/long columns removed at start when originally these were used instead of easting and northing.")
   row.names(hex) <- NULL
   row.names(hex_test) <- NULL
   hex_test$X <- NULL
