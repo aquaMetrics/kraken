@@ -6,8 +6,13 @@
 #'   `probability_non_linear` function. These are:  `data` (survey), `geoDf`
 #'   (distances to good),`geoDfBestFit` (best fit distance) to good and
 #'   `hexdfOut` (hexagon heat map).
+#' @param ellipse_representative Calculate the ellipse based on distance to 95%
+#'   percentile of resamples on each passing status on each transect (TRUE)
+#'   rather than 95% percentile of areas predicted ellipse area resamples
+#'   (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+#'   95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+#'   exactly the area in m2.
 #' @importFrom stats median
-#' @importFrom rlang .data
 #' @importFrom dplyr mutate group_by ungroup
 #' @return Named list containing 3 dataframes: `surveyData`,
 #'   `breachPositionEnsemble` and `breachPositionBestFit`
@@ -93,7 +98,6 @@ breach <- function(data, ellipse_representative = FALSE) {
       Source = NA
     ))
   } else {
-
     # Distance ----------------------------------------------------------------
     LatLon <- convert_coordinates(geoDf$Easting, geoDf$Northing)
     geoDf <- cbind(geoDf, LatLon)
@@ -157,22 +161,33 @@ breach <- function(data, ellipse_representative = FALSE) {
     # Copy survey data
     outSurveyData <- inSurveyData
   }
-  breachCoordinatesOut <- group_by(breachCoordinatesOut, .data$MCFF_Transect)
-  if(ellipse_representative == TRUE) {
-  breachCoordinatesOut <- mutate(breachCoordinatesOut,
-    "Rank" = 1:n(),
-    "breachLongitude_95thPercentile" = stats::quantile(.data$breachLongitude, probs = c(.05)),
-    "breachLatitude_95thPercentile" = stats::quantile(.data$breachLatitude, probs = c(.05)),
-    "breachDistance_95thPercentile" =  stats::quantile(.data$breachDistance, probs = c(.05))
-  )
+  breachCoordinatesOut <- group_by(breachCoordinatesOut, MCFF_Transect)
+  if (ellipse_representative == TRUE) {
+    breachCoordinatesOut <- mutate(
+      breachCoordinatesOut,
+      "Rank" = 1:n(),
+      "breachLongitude_95thPercentile" = stats::quantile(
+        breachLongitude,
+        probs = c(.05)
+      ),
+      "breachLatitude_95thPercentile" = stats::quantile(
+        breachLatitude,
+        probs = c(.05)
+      ),
+      "breachDistance_95thPercentile" = stats::quantile(
+        breachDistance,
+        probs = c(.05)
+      )
+    )
   }
-  if(ellipse_representative == FALSE) {
-  breachCoordinatesOut <- mutate(breachCoordinatesOut,
-    "Rank" = 1:n(),
-    "breachLongitude_50thPercentile" = median(.data$breachLongitude),
-    "breachLatitude_50thPercentile" = median(.data$breachLatitude),
-    "breachDistance_50thPercentile" = median(.data$breachDistance)
-  )
+  if (ellipse_representative == FALSE) {
+    breachCoordinatesOut <- mutate(
+      breachCoordinatesOut,
+      "Rank" = 1:n(),
+      "breachLongitude_50thPercentile" = median(breachLongitude),
+      "breachLatitude_50thPercentile" = median(breachLatitude),
+      "breachDistance_50thPercentile" = median(breachDistance)
+    )
   }
   breachCoordinatesOut <- ungroup(breachCoordinatesOut)
   # Return named list of outputs ----------------------------------------------
