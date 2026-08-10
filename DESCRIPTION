@@ -26,7 +26,6 @@ Imports:
   magrittr,
   purrr,
   readxl,
-  rlang,
   sf,
   shiny,
   sp,
@@ -38,6 +37,7 @@ Depends:
 RoxygenNote: 7.3.2
 Suggests: 
     covr,
+    ggstar,
     knitr,
     RColorBrewer,
     raster,
