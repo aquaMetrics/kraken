@@ -14,7 +14,7 @@ test_that("consecutive_stations works", {
 })
 
 test_that("consecutive_stations calculates columns", {
-  test <- consecutive_stations(demo_iqi)
+  test <- consecutive_stations(kraken::demo_iqi)
   test <- test$survey_data
   test <- dplyr::select(test,
     Survey_date,
@@ -30,7 +30,9 @@ test_that("consecutive_stations calculates columns", {
     Bearing,
     Distance,
     `Number of stations per transect`,
-    `WFD status`
+    `WFD status`,
+    mean_bearing,
+    quickBearing
   )
   expected <- read.csv(
     system.file("extdat",
@@ -38,11 +40,15 @@ test_that("consecutive_stations calculates columns", {
                 package = "kraken"
     ), check.names = FALSE
   )
-  expected <- dplyr::select(expected, -MCFF_Transect_Station)
+
   expected$Survey_date <- test$Survey_date
+
   test <- as.data.frame(test)
+  expected <- as.data.frame(expected)
+
   # Rounding error? very minor rounding issue - only detected in CI(?!)
   test$Bearing <- round(test$Bearing, 2)
   expected$Bearing <- round(expected$Bearing, 2)
+  expected <- expected[1:nrow(expected), names(test)]
   testthat::expect_equal(test, expected)
 })
