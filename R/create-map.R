@@ -1,4 +1,3 @@
-#' @importFrom rlang .data
 create_map <- function(data, areas, method) {
   # Convert survey data to spatial
   test <- sf::st_as_sf(data$survey_data,
@@ -10,12 +9,14 @@ create_map <- function(data, areas, method) {
   polygon <- areas$polygon
   if (method == "iqi") {
     my_colors <- data.frame(colour = c(
+      "#809998",
       "#d8181c",
       "#fe8c01",
       "#f5cc0a",
       "#a5d22d",
       "#4682b8"
     ), status = c(
+      "unclassifiable",
       "Bad",
       "Poor",
       "Moderate",
@@ -24,15 +25,17 @@ create_map <- function(data, areas, method) {
     ))
   } else {
     my_colors <- data.frame(colour = c(
+      "#809998",
       "#d8181c",
       "#a5d22d"
     ), status = c(
+      "unclassifiable",
       "Fail",
       "Pass"
     ))
   }
 
-  my_colours <- dplyr::filter(my_colors, .data$status %in%
+  my_colours <- dplyr::filter(my_colors, status %in%
     unique(test$`WFD status`))
 
 
@@ -44,14 +47,14 @@ create_map <- function(data, areas, method) {
   blue_theme <- ggplot2::theme(
     panel.background = ggplot2::element_rect(
       fill = "#BFD5E3", colour = "#6D9EC1",
-      size = 2, linetype = "solid"
+      linewidth = 2, linetype = "solid"
     ),
     panel.grid.major = ggplot2::element_line(
-      size = 0.5, linetype = "solid",
+      linewidth = 0.5, linetype = "solid",
       colour = "white"
     ),
     panel.grid.minor = ggplot2::element_line(
-      size = 0.25, linetype = "solid",
+      linewidth = 0.25, linetype = "solid",
       colour = "white"
     )
   )
@@ -62,7 +65,7 @@ create_map <- function(data, areas, method) {
     values = my_colours$colour
   )
   g <- ggplot2::ggplot() +
-    ggplot2::geom_sf(data = test, ggplot2::aes(color = .data$`WFD status`)) +
+    ggplot2::geom_sf(data = test, ggplot2::aes(color = `WFD status`)) +
     ggplot2::geom_sf(data = ellipse, alpha = 0) +
     # geom_sf(data = polygon, alpha = 0, colour = "purple") +
     # geom_sf(data = points, colour = "black") +
