@@ -47,8 +47,9 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- NA
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
-  all_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
-
+  all_pen_edge_missing2 <- kraken(demo_iqi, n_try = 10)
+  median_distance <- all_pen_edge_missing2$object[all_pen_edge_missing2$question == "Median distance to Good (m)"]
+  testthat::expect_true(median_distance[[1]][1,2] == 209)
   #  Test all pen edge missing IQI scores and one transect with data to fit
   #  model
   demo_iqi <- kraken::demo_iqi
@@ -58,6 +59,8 @@ test_that("test kraken works", {
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
   all_pen_edge_missing <- kraken(demo_iqi)
+  median_distance <- all_pen_edge_missing$object[all_pen_edge_missing$question == "Median distance to Good (m)"]
+  testthat::expect_true(median_distance[[1]][1,2] == 191)
   # Passing at 190m but map distance >209m why?
   # Could be measuring from station 2 not the pen edge? Or something strange
   # with ellipse? (but unlikely)? Total area is impacted by this difference.
@@ -96,15 +99,7 @@ test_that("test kraken works", {
   demo_iqi$IQI[24] <- 0.5
   only_faling_pen_edge <- kraken(demo_iqi[c(1,10,17,24),], n_try = 10)
 
-
-  # If less than 7 stations is a model fitted?
-
-  # Check if pen edge being used for start of distance to good measurement for
-  # both two consecutive stations and model fitting approaches?
-
-  reduced_pen_edge_missing <- kraken(demo_iqi, n_try = 10)
-  # reduced_pen_edge_missing$object[reduced_pen_edge_missing$question == "map"]
-
+  # If less than 7 stations is a model fitted? No.
 })
 
 
