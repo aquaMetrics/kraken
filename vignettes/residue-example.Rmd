@@ -27,9 +27,14 @@ Export data from fish farm database as .csv file. Save locally and use the 'Impo
 
 ```{r data}
 
-data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326-demo.csv")
+# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326-demo.csv")
+
+data <- read.csv(system.file("extdat", "test-data/residue-test-data.csv",
+  package = "kraken"
+), check.names = TRUE)
 
 
+data <- dplyr::filter(data , `Site.ID` == "BELL1")
 # Select only the columns needed for calculations
 data <- dplyr::select(data,
   EQS..ng.kg.,
