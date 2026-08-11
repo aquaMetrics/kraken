@@ -26,18 +26,9 @@ knitr::opts_chunk$set(message = FALSE)
 Export data from fish farm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environment pane to import data or use `read.csv()` function and paste in file path - but replace  '\' with '/' in the path.
 
 ```{r data}
-# data <- read.csv(system.file("extdat/test-data/", "residue-test-data.csv", package = "kraken"))
 
 data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5326-demo.csv")
 
-# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379.csv")
-#data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/survey-5379-2026-04-14.csv")
-
-# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/rum1.csv")
-
-
-# Filter data for my particular farm/date of interest
-# data <- dplyr::filter(data, Site.ID == "FFMC27")
 
 # Select only the columns needed for calculations
 data <- dplyr::select(data,
@@ -92,8 +83,8 @@ Display which model or reduced analysis options have been used for each transect
 
 ```{r model}
 model <- output$object[output$question == "model_info"][[1]]
-model <- select(model, -MCFF, -Transect)
-knitr::kable(model)
+# model <- dplyr::select(model, -MCFF, -Transect)
+knitr::kable( dplyr::select(model, -MCFF, -Transect))
 ```
 
 
