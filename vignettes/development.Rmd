@@ -282,7 +282,7 @@ paste("Size of ellispse used for displayed on map:", round(sf::st_area(areas$ell
 
 paste(
   "Percentage diff: ",
-  100 - round(100 / as.numeric(sf::st_area(areas$ellipse)) * areas$fifthPercentileArea$`5%`), "%"
+  100 - round((100 / as.numeric(sf::st_area(areas$ellipse))) * as.numeric(areas$fifthPercentileArea$`5%`)), "%"
 )
 ```
 
@@ -539,7 +539,7 @@ data <- st_as_sf(data$survey_data, coords = c("Longitude", "Latitude"), crs = 43
 # Calculate area without overrides
 ellipse <- areas$ellipse
 myColors <- c(
-  # '#d7191c',
+   '#d7191c',
   "#fdae61",
   "#fecc5c",
   "#abdda4",
