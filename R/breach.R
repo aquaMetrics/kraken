@@ -6,12 +6,7 @@
 #'   `probability_non_linear` function. These are:  `data` (survey), `geoDf`
 #'   (distances to good),`geoDfBestFit` (best fit distance) to good and
 #'   `hexdfOut` (hexagon heat map).
-#' @param ellipse_representative Calculate the ellipse based on distance to 95%
-#'   percentile of resamples on each passing status on each transect (TRUE)
-#'   rather than 95% percentile of areas predicted ellipse area resamples
-#'   (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
-#'   95% area m2 exactly. Otherwise, the ellipse polygon does not represent
-#'   exactly the area in m2.
+#' @inheritParams kraken
 #' @importFrom stats median
 #' @importFrom dplyr mutate group_by ungroup
 #' @return Named list containing 3 dataframes: `surveyData`,
@@ -23,7 +18,7 @@
 #' probability <- probability_non_linear(demo_iqi)
 #' breach <- breach(probability)
 #' }
-breach <- function(data, ellipse_representative = FALSE) {
+breach <- function(data, ellipse_representative = TRUE) {
   inSurveyData <- data[["data"]]
   geoDf <- data[["geoDf"]]
   geoDfBestFit <- data[["geoDfBestFit"]]

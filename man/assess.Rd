@@ -15,7 +15,8 @@ assess(
   overrideBearing3 = NA,
   overrideBearing4 = NA,
   loess = FALSE,
-  use_mean_bearing = FALSE
+  use_mean_bearing = TRUE,
+  ellipse_representative = TRUE
 )
 }
 \arguments{
@@ -32,26 +33,33 @@ assess(
 \item{IQI}{IQI ratio - Environmental Quality Ratio EQR}
 }}
 
-\item{overrideTransect1}{Optional override distance Transect 1}
+\item{overrideTransect1}{overrideTransect1}
 
-\item{overrideTransect2}{Optional override distance Transect 2}
+\item{overrideTransect2}{overrideTransect2}
 
-\item{overrideTransect3}{Optional override distance Transect 3}
+\item{overrideTransect3}{overrideTransect3}
 
-\item{overrideTransect4}{Optional override distance Transect 4}
+\item{overrideTransect4}{overrideTransect4}
 
-\item{overrideBearing1}{Optional override bearing Transect 1}
+\item{overrideBearing1}{overrideBearing1}
 
-\item{overrideBearing2}{Optional override bearing Transect 2}
+\item{overrideBearing2}{overrideBearing2}
 
-\item{overrideBearing3}{Optional override bearing Transect 3}
+\item{overrideBearing3}{overrideBearing3}
 
-\item{overrideBearing4}{Optional override bearing Transect 4}
+\item{overrideBearing4}{overrideBearing4}
 
-\item{loess}{Use loess model.}
+\item{loess}{Use loess model instead of fitting multiple different models}
 
 \item{use_mean_bearing}{Use bearing between the pen edge stations and the
 mean coordinate of stations excluding the pen edge.}
+
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95
+percentile of resamples on each passing status on each transect (TRUE)
+rather than 95 percentile of areas predicted ellipse area resamples
+(FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+exactly the area in m2.}
 }
 \value{
 A named list containing the fifth percentile of the modeled area in

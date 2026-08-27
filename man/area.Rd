@@ -4,16 +4,18 @@
 \alias{area}
 \title{Ellipse Area Distribution}
 \usage{
-area(data, ellipse_representative = FALSE)
+area(data, ellipse_representative = TRUE)
 }
 \arguments{
 \item{data}{named list of 3 data frames output from the `breach()` function:
 `surveyData`, `breachPositionEnsemble` and `breachPositionBestFit`.}
 
-\item{ellipse_representative}{set to TRUE to return ellipse accurately
-representing 95% of the area using 95% distance to passing status on each
-transect. The default is FALSE, returning an indicative ellipse based on a
-single fitting of the model.}
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95
+percentile of resamples on each passing status on each transect (TRUE)
+rather than 95 percentile of areas predicted ellipse area resamples
+(FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+exactly the area in m2.}
 }
 \value{
 Named list of 7 objects:

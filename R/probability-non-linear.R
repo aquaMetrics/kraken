@@ -14,7 +14,7 @@
 #' @param method Type of method used to analyse samples, either "iqi" or
 #'   "residue".
 #' @param n_try Number of attempts to fit a model to bootstrap resamples. The
-#'   model is fitted to a maximum 50% of attempts otherwise the model is not
+#'   model is fitted to a maximum 50 percent of attempts otherwise the model is not
 #'   included. By default, n_try = 1000 and therefore 500 bootstraps are
 #'   returned if model is successfully fitted.
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
@@ -22,7 +22,7 @@
 #' \describe{
 #'  \item{data}{Summary output of the models fitted for each transect}
 #'  \item{geoDf}{All resample predictions for distance to passing status}
-#'  \item{geoDfBestFit}{Best fit prediction at 95% confidence level for
+#'  \item{geoDfBestFit}{Best fit prediction at 95 percent confidence level for
 #'  distance to passing status based on fitting the model a single time}
 #'  \item{hexdfOut.}{hexagon heat map of resample predictions}
 #'  }

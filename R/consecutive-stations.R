@@ -25,7 +25,7 @@ consecutive_stations <- function(
   pass_fail = 0.64,
   method = "iqi",
   average = FALSE,
-  use_mean_bearing = FALSE
+  use_mean_bearing = TRUE
 ) {
   # summaryOuput - Survey - Initial checks
   set.seed(123)

@@ -1,5 +1,5 @@
 test_that("consecutive_stations works", {
-  check <- consecutive_stations(demo_iqi)
+  check <- consecutive_stations(demo_iqi, use_mean_bearing = FALSE)
   testthat::expect_equal(class(check$sample_point_checks), "data.frame")
   testthat::expect_equal(nrow(check$sample_point_checks), 4)
   testthat::expect_equal(ncol(check$sample_point_checks), 5)
@@ -14,9 +14,10 @@ test_that("consecutive_stations works", {
 })
 
 test_that("consecutive_stations calculates columns", {
-  test <- consecutive_stations(kraken::demo_iqi)
+  test <- consecutive_stations(kraken::demo_iqi, use_mean_bearing = FALSE)
   test <- test$survey_data
-  test <- dplyr::select(test,
+  test <- dplyr::select(
+    test,
     Survey_date,
     MCFF,
     Transect,
@@ -35,10 +36,12 @@ test_that("consecutive_stations calculates columns", {
     quickBearing
   )
   expected <- read.csv(
-    system.file("extdat",
-                "test-data/2021-05-26-bellister/survey-iqi-data-gis.csv",
-                package = "kraken"
-    ), check.names = FALSE
+    system.file(
+      "extdat",
+      "test-data/2021-05-26-bellister/survey-iqi-data-gis.csv",
+      package = "kraken"
+    ),
+    check.names = FALSE
   )
 
   expected$Survey_date <- test$Survey_date

@@ -6,7 +6,11 @@ test_that("test kraken works", {
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[1:6] <- 0.5
   demo_iqi <- demo_iqi[c(1:6, 10:30), ]
-  test_all_the_same <- kraken(demo_iqi)
+  test_all_the_same <- kraken(
+    demo_iqi,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
   warnings <- test_all_the_same$response[grepl(
     "_warning",
     test_all_the_same$question
@@ -21,20 +25,36 @@ test_that("test kraken works", {
   # One transect doesn't reach good status
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[7:9] <- 0.62
-  test_minimal <- kraken(demo_iqi, n_try = 10)
+  test_minimal <- kraken(
+    demo_iqi,
+    n_try = 10,
+    ,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
   testthat::expect_true(any(test_minimal$response == ">"))
   testthat::expect_true(any(test_minimal$response == "Minimal footprint area"))
 
   # Test if one missing IQI scores at station 2
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[2] <- NA
-  missing_station_2 <- kraken(demo_iqi, n_try = 10)
+  missing_station_2 <- kraken(
+    demo_iqi,
+    n_try = 10,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
   # missing_station_2$object[missing_station_2$question == "map"]
 
   # Test if one missing IQI scores at pen edge (station 1)
   demo_iqi <- kraken::demo_iqi
   demo_iqi$IQI[1] <- NA
-  missing_station_1 <- kraken(demo_iqi, n_try = 10)
+  missing_station_1 <- kraken(
+    demo_iqi,
+    n_try = 10,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
 
   # Test all pen edge missing IQI scores
   demo_iqi <- kraken::demo_iqi
@@ -42,11 +62,17 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- NA
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
-  all_pen_edge_missing2 <- kraken(demo_iqi, n_try = 10)
+  all_pen_edge_missing2 <- kraken(
+    demo_iqi,
+    n_try = 10,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
   median_distance <- all_pen_edge_missing2$object[
     all_pen_edge_missing2$question == "Median distance to Good (m)"
   ]
   testthat::expect_true(median_distance[[1]][1, 2] == 209)
+  all_pen_edge_missing2$object[all_pen_edge_missing2$question == "map"]
   #  Test all pen edge missing IQI scores and one transect with data to fit
   #  model
   demo_iqi <- kraken::demo_iqi
@@ -55,7 +81,11 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- NA
   demo_iqi$IQI[17] <- NA
   demo_iqi$IQI[24] <- NA
-  all_pen_edge_missing <- kraken(demo_iqi)
+  all_pen_edge_missing <- kraken(
+    demo_iqi,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
   median_distance <- all_pen_edge_missing$object[
     all_pen_edge_missing$question == "Median distance to Good (m)"
   ]
@@ -75,7 +105,11 @@ test_that("test kraken works", {
   demo_iqi <- demo_iqi[
     c(1, 7, 8, 9, 10, 14, 15, 16, 17, 21, 22, 23, 24, 28, 29, 30),
   ]
-  missing_pen_edge_reduced <- kraken(demo_iqi)
+  missing_pen_edge_reduced <- kraken(
+    demo_iqi,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
 
   # remove other values
 
@@ -85,7 +119,12 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- 0.5
   demo_iqi$IQI[17] <- 0.5
   demo_iqi$IQI[24] <- 0.5
-  all_pen_edge_failing <- kraken(demo_iqi[c(1, 10:30), ], n_try = 10)
+  all_pen_edge_failing <- kraken(
+    demo_iqi[c(1, 10:30), ],
+    n_try = 10,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
 
   # Test only failing pen edge stations
   demo_iqi <- kraken::demo_iqi
@@ -93,7 +132,12 @@ test_that("test kraken works", {
   demo_iqi$IQI[10] <- 0.5
   demo_iqi$IQI[17] <- 0.5
   demo_iqi$IQI[24] <- 0.5
-  only_faling_pen_edge <- kraken(demo_iqi[c(1, 10, 17, 24), ], n_try = 10)
+  only_faling_pen_edge <- kraken(
+    demo_iqi[c(1, 10, 17, 24), ],
+    n_try = 10,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
 
   # If less than 7 stations is a model fitted? No.
 })
@@ -136,6 +180,8 @@ test_that("test kraken works for chemistry data", {
     test_data,
     pass_fail = 768,
     method = "residue",
-    loess = TRUE
+    loess = TRUE,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
   )
 })

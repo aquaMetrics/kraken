@@ -4,10 +4,7 @@
 #'
 #' @param data named list of 3 data frames output from the `breach()` function:
 #'   `surveyData`, `breachPositionEnsemble` and `breachPositionBestFit`.
-#' @param ellipse_representative set to TRUE to return ellipse accurately
-#'   representing 95% of the area using 95% distance to passing status on each
-#'   transect. The default is FALSE, returning an indicative ellipse based on a
-#'   single fitting of the model.
+#' @inheritParams kraken
 #' @return Named list of 7 objects:
 #' \describe{
 #' \item{ellipse}{sf object of the ellipse area}
@@ -34,7 +31,7 @@
 #' plot(area[["ellipse"]])
 #' area[["fifthPercentileArea"]]
 #' }
-area <- function(data, ellipse_representative = FALSE) {
+area <- function(data, ellipse_representative = TRUE) {
   # breachPositionEnsemble - Breach positions
   # surveyData - Survey IQI (with GIS)
   # breachPositionBestFit - Breach positions - Best Fit

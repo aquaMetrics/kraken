@@ -1,12 +1,13 @@
 test_that("area function output matches Spotfire script", {
   probability <- readRDS(
-    system.file("extdat",
+    system.file(
+      "extdat",
       "test-data/2021-05-26-bellister/test-probability.rds",
       package = "kraken"
     )
   )
-  breach <- breach(probability)
-  area <- area(breach)
+  breach <- breach(probability, ellipse_representative = FALSE)
+  area <- area(breach, ellipse_representative = FALSE)
   expect_equal(class(area$ellipse), c("sfc_POLYGON", "sfc"))
   # Matches Spotfire script output for Bellister 2021-05-26
   expect_equal(area$fifthPercentileArea[[1]][1], 96914.924)

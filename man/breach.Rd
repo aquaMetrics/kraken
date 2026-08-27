@@ -4,7 +4,7 @@
 \alias{breach}
 \title{Breach}
 \usage{
-breach(data, ellipse_representative = FALSE)
+breach(data, ellipse_representative = TRUE)
 }
 \arguments{
 \item{data}{named list of 4 data frames created by the
@@ -12,9 +12,9 @@ breach(data, ellipse_representative = FALSE)
 (distances to good),`geoDfBestFit` (best fit distance) to good and
 `hexdfOut` (hexagon heat map).}
 
-\item{ellipse_representative}{Calculate the ellipse based on distance to 95%
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95
 percentile of resamples on each passing status on each transect (TRUE)
-rather than 95% percentile of areas predicted ellipse area resamples
+rather than 95 percentile of areas predicted ellipse area resamples
 (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
 95% area m2 exactly. Otherwise, the ellipse polygon does not represent
 exactly the area in m2.}

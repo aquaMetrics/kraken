@@ -5,7 +5,7 @@ test_that("breach function matches spotfire script outputs", {
       package = "kraken"
     )
   )
-  breach <- breach(data)
+  breach <- breach(data,   ellipse_representative = FALSE)
   breach_positions <- breach[["breachPositionEnsemble"]]
   breach_best_fit <- breach[["breachPositionBestFit"]]
   # test data is from Spotfire / R script

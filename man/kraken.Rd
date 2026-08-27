@@ -19,12 +19,23 @@ kraken(
   pass_fail = 0.64,
   method = "iqi",
   n_try = 1000,
-  ellipse_representative = FALSE,
-  use_mean_bearing = FALSE
+  ellipse_representative = TRUE,
+  use_mean_bearing = TRUE
 )
 }
 \arguments{
-\item{data}{Input data frame see `demo_iqi`.}
+\item{data}{Data frame with 7 case-sensitive named variables as described
+  below, see `demo_iqi` for example data. Rows and columns can be arranged in
+  any order. Additional columns can be present but will be ignored.
+\describe{
+\item{Survey_date}{Survey_date character string}
+\item{MCFF}{MCFF Site name - character string}
+\item{Transect}{Transect integer}
+\item{Station}{Station integer increasing from cage edge e.g. 1,2,3,4 etc}
+\item{Easting}{Easting coordinate}
+\item{Northing}{Northing coordinate}
+\item{IQI}{IQI ratio - Environmental Quality Ratio EQR}
+}}
 
 \item{overrideTransect1}{overrideTransect1}
 
@@ -48,17 +59,17 @@ kraken(
 
 \item{pass_fail}{Pass-fail compliance boundary value.}
 
-\item{method}{Type of method used to analyse samples either 'iqi' or
-'residue'.}
+\item{method}{Type of method used to analyse samples either `iqi` or
+`residue`.}
 
 \item{n_try}{Number of attempts to fit a model to bootstrap resamples. The
-model is fitted to a maximum 50% of attempts otherwise the model is not
+model is fitted to a maximum 50 percent of attempts otherwise the model is not
 included. By default, n_try = 1000 and therefore 500 bootstraps are
 returned if model is successfully fitted.}
 
-\item{ellipse_representative}{Calculate the ellipse based on distance to 95%
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95
 percentile of resamples on each passing status on each transect (TRUE)
-rather than 95% percentile of areas predicted ellipse area resamples
+rather than 95 percentile of areas predicted ellipse area resamples
 (FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
 95% area m2 exactly. Otherwise, the ellipse polygon does not represent
 exactly the area in m2.}
@@ -116,7 +127,9 @@ Data frame contain 8 variables.
 }
 }
 \description{
-Calculate Footprint
+Assess the size of the mixing zone based on modelling the distance to good
+status. Where distance cannot be modeled, the distance to the second
+consecutive good status (or high status) station is used.
 }
 \examples{
 \dontrun{
