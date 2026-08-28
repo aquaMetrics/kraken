@@ -112,7 +112,8 @@ probability_non_linear <- function(
     innerTransect <- innerTransect[order(innerTransect$Distance), ]
 
     # Check if 7 stations taken
-    numberOfStations <- length(innerTransect$IQI)
+    numberOfStations <- innerTransect[!is.na(innerTransect$IQI), ]
+    numberOfStations <- length(unique(numberOfStations$Station))
     if (numberOfStations < 7) {
       stationNumber <-
         paste0(
