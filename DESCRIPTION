@@ -34,7 +34,7 @@ Imports:
   uuid
 Depends: 
     R (>= 4.0)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Suggests: 
     covr,
     ggstar,
