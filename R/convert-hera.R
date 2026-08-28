@@ -12,12 +12,14 @@
 #'
 #' @return dataframe in 'hera' format
 convert_hera <- function(method, data, overrides, breachs, areas) {
-  breach <- tidyr::pivot_longer(breachs$breachPositionBestFit,
+  breach <- tidyr::pivot_longer(
+    breachs$breachPositionBestFit,
     cols = c(
       "breachDistanceBestFit",
       "breachLongitude",
       "breachLatitude"
-    ), values_to = "response",
+    ),
+    values_to = "response",
     names_to = "question"
   )
   breach$response <- as.character(breach$response)
@@ -28,22 +30,53 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     question = "breachPositionEnsemble"
   )
 
+  breach_position <- breachPositionEnsemble$object[[1]]
+  breach_position <- select(
+    breach_position,
+    MCFF,
+    Transect,
+    breachLongitude_95thPercentile,
+    breachLatitude_95thPercentile
+  )
+
+  breach_position <- distinct(breach_position)
+  breach_position_lat <- tibble::tibble(
+    MCFF = breach_position$MCFF,
+    Transect = breach_position$Transect,
+    response = breach_position$breachLatitude_95thPercentile,
+    question = "breach_position_latitude"
+  )
+  breach_position_lon <- tibble::tibble(
+    MCFF = breach_position$MCFF,
+    Transect = breach_position$Transect,
+    response = breach_position$breachLongitude_95thPercentile,
+    question = "breach_position_longitude"
+  )
+  breach_positions <- bind_rows(breach_position_lon, breach_position_lat)
+  breach_positions$response <- as.character(breach_positions$response)
+
   polygons <- tibble::tibble(
     question = c("ellipse", "polygon", "spotfire_ellipse"),
     response = c("object", "object", "object"),
-    object = c(list(areas$ellipse), list(areas$polygon), list(areas$spotfire_ellipse))
+    object = c(
+      list(areas$ellipse),
+      list(areas$polygon),
+      list(areas$spotfire_ellipse)
+    )
   )
   area <- data.frame(areas$fifthPercentileArea)
   names(area) <- c("area_95_confidence", "package_version", "package_date")
   area <- dplyr::mutate_all(area, as.character)
-  area <- tidyr::pivot_longer(area,
+  area <- tidyr::pivot_longer(
+    area,
     cols = dplyr::everything(),
     values_to = "response",
     names_to = "question"
   )
 
   data$survey_data <- dplyr::mutate_all(data$survey_data, as.character)
-  survey_data <- tidyr::pivot_longer(data$survey_data,
+  survey_data <- tidyr::pivot_longer(
+    data$survey_data,
     cols = c(
       -Transect,
       -Station,
@@ -54,7 +87,8 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     names_to = "question"
   )
 
-  warning <- tidyr::pivot_longer(breachs$surveyData,
+  warning <- tidyr::pivot_longer(
+    breachs$surveyData,
     cols = c(
       "stationNumber",
       "twoConsecutiveStations"
@@ -63,7 +97,12 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     names_to = "question"
   )
 
-  map <- create_map(data = data, areas = areas, method = method)
+  map <- create_map(
+    data = data,
+    areas = areas,
+    method = method,
+    breachPositionEnsemble = breachPositionEnsemble
+  )
   map <- tibble::tibble(
     "question" = "map",
     "response" = "object",
@@ -97,24 +136,23 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     "object" = list(overrides$hexdfOut)
   )
 
-
   distance_to_good <- dplyr::group_by(overrides$geoDf, Transect)
-  distance_to_good <- dplyr::summarise(distance_to_good,
-    "Median distance to Good (m)" =
-      as.integer(
-        round(
-          median(
-            as.numeric(`D2Ghist`)
-          )
+  distance_to_good <- dplyr::summarise(
+    distance_to_good,
+    "Median distance to Good (m)" = as.integer(
+      round(
+        median(
+          as.numeric(`D2Ghist`)
         )
       )
+    )
   )
   distance_to_good <- tibble::tibble(
     "question" = "Median distance to Good (m)",
     "response" = NA,
     "object" = list(distance_to_good)
   )
-  if (!all(names(area) %in% c("warnings"))){
+  if (!all(names(area) %in% c("warnings"))) {
     warnings <- tibble::tibble(
       "question" = "ellipse_warnings",
       "response" = NA,
@@ -140,14 +178,19 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     warnings,
     context_warning,
     geo_df,
-    distance_to_good
+    distance_to_good,
+    breach_positions
   )
 
   output$Survey_date <- as.Date(output$Survey_date)
 
-  project_id <- paste0(data$survey_data$MCFF[1], data$survey_data$Survey_date[1])
+  project_id <- paste0(
+    data$survey_data$MCFF[1],
+    data$survey_data$Survey_date[1]
+  )
   Survey_date <- data$survey_data$Survey_date[1]
-  output <- dplyr::mutate(output,
+  output <- dplyr::mutate(
+    output,
     sample_id = paste0(
       Transect,
       Station,
@@ -159,7 +202,8 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     "Survey_date" = Survey_date
   )
 
-  output <- dplyr::select(output,
+  output <- dplyr::select(
+    output,
     project_id,
     location_id,
     sample_id,

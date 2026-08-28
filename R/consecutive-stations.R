@@ -88,9 +88,9 @@ consecutive_stations <- function(
     for (i in combs) {
       innerTransect <- data[data$MCFF_Transect == i, ]
       innerTransect <- innerTransect[order(innerTransect$Station), ]
-
       # Check if 7 stations taken ----------------------------------------------
-      numberOfStations <- length(innerTransect$IQI)
+      numberOfStations <- innerTransect[!is.na(innerTransect$IQI), ]
+      numberOfStations <- length(unique(numberOfStations$Station))
       if (numberOfStations < 7) {
         stationNumber <-
           paste0(
