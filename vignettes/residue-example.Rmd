@@ -70,8 +70,7 @@ Run data through calculations.
 ```{r run-kraken, include=FALSE}
 output <- kraken::kraken(data,
   pass_fail = pass_fail,
-  method = "residue",
-  ellipse_representative = TRUE
+  method = "residue"
 )
 ```
 
@@ -81,6 +80,21 @@ output <- kraken::kraken(data,
 map <- output$object[output$question == "map"]
 map[[1]]
 ```
+
+
+## Breach distances
+
+```{r}
+breach_ensemble <- bind_rows(output$object[output$question == "breachPositionEnsemble"])
+breach_ensemble <- breach_ensemble %>%
+  dplyr::select(Transect, `breachDistance_95thPercentile`) %>% 
+  distinct()
+knitr::kable(breach_ensemble)
+```
+
+
+
+
 
 ### Models
 
@@ -158,49 +172,49 @@ hex_df$Counts <- as.numeric(hex_df$Counts)
 hex_df$shape <- NA
 hex_df$size <- NA
 hex_df$colour <- NA
+hex_df$alpha <- NA
 hex_df$shape[hex_df$Source == "Prob. model"] <- "hexagon"
 hex_df$shape[hex_df$Source == "Survey data"] <- "circle"
 hex_df$size[hex_df$Source == "Prob. model"] <- 3
-hex_df$size[hex_df$Source == "Survey data"] <- 1
-
-
-breach_ensemble <- bind_rows(output$object[output$question == "breachPositionEnsemble"])
-breach_ensemble <- breach_ensemble %>%
-  dplyr::select(Transect, `breachDistance_95thPercentile`) %>% 
-  distinct()
+hex_df$size[hex_df$Source == "Survey data"] <- 2
+hex_df$alpha[hex_df$Source == "Prob. model"] <- 1
+hex_df$alpha[hex_df$Source == "Survey data"] <- 0.7
 
 
 
-p <- list()
-for(i in 1:nrow(model)) {
-  model_plot <- model[model$Transect == i, ]
-  plot_data <- plots_data[grepl(paste0("- ",i), plots_data$MCFF_Transect), ]
-  model_type <- paste0(trimws(substr(model_plot$bestModel,1,4)), "()")
-  message(model_type)
-  transect_hex <- hex_df[hex_df$Transect == i, ]
 
-  if(model_type %in% c("Insu()","Regr()")) {
-  p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
-  geom_point() +
-  ylab("Emmamectin PPM") +
-  ggplot2::ggtitle(paste0("Site: ", unique(plot_data$project_id)),
-                       subtitle = paste0(unique(plot_data$MCFF_Transect),
-                                         " Model fit not of sufficient quality to use")) +
-  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2) 
-    } 
-  if(!model_type %in% c("Insu()","Regr()")){
-  p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
-  geom_point() +
-  geom_smooth(method = drm,
-              method.args = list(fct = eval(parse(text=model_type))),
-              se = FALSE) +
-  ylab("Emmamectin PPM") +
-  ggtitle(paste0("Site: ", unique(plot_data$project_id)), 
-          subtitle = unique(plot_data$MCFF_Transect)) +
-  geom_hline(yintercept = pass_fail, colour = "green", linetype = 2) 
 
-  } 
-}
+# 
+# p <- list()
+# for(i in 1:nrow(model)) {
+#   model_plot <- model[model$Transect == i, ]
+#   plot_data <- plots_data[grepl(paste0("- ",i), plots_data$MCFF_Transect), ]
+#   model_type <- paste0(trimws(substr(model_plot$bestModel,1,4)), "()")
+#   message(model_type)
+#   transect_hex <- hex_df[hex_df$Transect == i, ]
+# 
+#   if(model_type %in% c("Insu()","Regr()")) {
+#   p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
+#   geom_point() +
+#   ylab("Emmamectin PPM") +
+#   ggplot2::ggtitle(paste0("Site: ", unique(plot_data$project_id)),
+#                        subtitle = paste0(unique(plot_data$MCFF_Transect),
+#                                          " Model fit not of sufficient quality to use")) +
+#   geom_hline(yintercept = pass_fail, colour = "green", linetype = 2) 
+#     } 
+#   if(!model_type %in% c("Insu()","Regr()")){
+#   p[[i]] <- ggplot(aes(Distance, IQI), data = plot_data) +
+#   geom_point() +
+#   geom_smooth(method = drm,
+#               method.args = list(fct = eval(parse(text=model_type))),
+#               se = FALSE) +
+#   ylab("Emmamectin PPM") +
+#   ggtitle(paste0("Site: ", unique(plot_data$project_id)), 
+#           subtitle = unique(plot_data$MCFF_Transect)) +
+#   geom_hline(yintercept = pass_fail, colour = "green", linetype = 2) 
+# 
+#   } 
+# }
 
 
 for(i in 1:nrow(model)) {
@@ -217,7 +231,7 @@ for(i in 1:nrow(model)) {
   colour = Counts, fill = Counts),
   data = transect_hex) +
   geom_star(
-  starshape = transect_hex$shape,  size = transect_hex$size) +
+  starshape = transect_hex$shape,  size = transect_hex$size, alpha = transect_hex$alpha) +
   ylab("Emmamectin PPM") +
   ggtitle(paste0("Site: ", unique(plot_data$project_id)), 
           subtitle = unique(plot_data$MCFF_Transect)) +
@@ -226,8 +240,8 @@ for(i in 1:nrow(model)) {
             colour = "black", 
             linetype = 2,
             linewidth = 1) +
-   scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) +
-  scale_fill_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26"))
+   scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26"),  na.value = "black") +
+  scale_fill_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26"), na.value = "black")
   }
   print(p)
 }
