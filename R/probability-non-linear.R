@@ -132,7 +132,6 @@ probability_non_linear <- function(
 
     # If replicate samples from a single station then use average value of
     # replicates instead
-
     innerTransectMean <- innerTransect %>%
       group_by(Transect, Station) %>%
       mutate(IQI = mean(IQI))

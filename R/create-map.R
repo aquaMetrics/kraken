@@ -6,23 +6,23 @@ create_map <- function(data, areas, method, breachPositionEnsemble) {
     crs = 4326
   )
 
-  breach_position <- breachPositionEnsemble$object[[1]]
-  breach_position <- select(
-    breach_position,
-    breachLongitude_95thPercentile,
-    breachLatitude_95thPercentile
-  )
-
-  breach_position <- distinct(breach_position)
-
-  breach_position_pts <- sf::st_as_sf(
-    breach_position,
-    coords = c(
-      "breachLongitude_95thPercentile",
-      "breachLatitude_95thPercentile"
-    ),
-    crs = 4326
-  )
+  # breach_position <- breachPositionEnsemble$object[[1]]
+  # breach_position <- select(
+  #   breach_position,
+  #   breachLongitude_95thPercentile,
+  #   breachLatitude_95thPercentile
+  # )
+  #
+  # breach_position <- distinct(breach_position)
+  #
+  # breach_position_pts <- sf::st_as_sf(
+  #   breach_position,
+  #   coords = c(
+  #     "breachLongitude_95thPercentile",
+  #     "breachLatitude_95thPercentile"
+  #   ),
+  #   crs = 4326
+  # )
 
   # Calculate area without overrides
   ellipse <- areas$ellipse
@@ -99,7 +99,7 @@ create_map <- function(data, areas, method, breachPositionEnsemble) {
   g <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = test, ggplot2::aes(color = `WFD status`)) +
     ggplot2::geom_sf(data = ellipse, alpha = 0) +
-    ggplot2::geom_sf(data = breach_position_pts, colour = "black", shape = 4) +
+    #  ggplot2::geom_sf(data = breach_position_pts, colour = "black", shape = 4) +
     # geom_sf(data = polygon, alpha = 0, colour = "purple") +
     # geom_sf(data = points, colour = "black") +
     colScale +

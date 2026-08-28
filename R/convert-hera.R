@@ -30,31 +30,6 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     question = "breachPositionEnsemble"
   )
 
-  breach_position <- breachPositionEnsemble$object[[1]]
-  breach_position <- select(
-    breach_position,
-    MCFF,
-    Transect,
-    breachLongitude_95thPercentile,
-    breachLatitude_95thPercentile
-  )
-
-  breach_position <- distinct(breach_position)
-  breach_position_lat <- tibble::tibble(
-    MCFF = breach_position$MCFF,
-    Transect = breach_position$Transect,
-    response = breach_position$breachLatitude_95thPercentile,
-    question = "breach_position_latitude"
-  )
-  breach_position_lon <- tibble::tibble(
-    MCFF = breach_position$MCFF,
-    Transect = breach_position$Transect,
-    response = breach_position$breachLongitude_95thPercentile,
-    question = "breach_position_longitude"
-  )
-  breach_positions <- bind_rows(breach_position_lon, breach_position_lat)
-  breach_positions$response <- as.character(breach_positions$response)
-
   polygons <- tibble::tibble(
     question = c("ellipse", "polygon", "spotfire_ellipse"),
     response = c("object", "object", "object"),
@@ -178,8 +153,7 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     warnings,
     context_warning,
     geo_df,
-    distance_to_good,
-    breach_positions
+    distance_to_good
   )
 
   output$Survey_date <- as.Date(output$Survey_date)

@@ -8,7 +8,7 @@
 #' @param method Type of method used to analyse samples, either "iqi" or
 #'   "residue".
 #' @param average If replicates sample from a single station, should they be
-#'   average or consider separate samples.
+#'   average or considered separate samples.
 #' @param use_mean_bearing Use bearing based on the mean of all the
 #'   bearings measured from pen edge to each station.
 #' @return A named list of two data frames `sample_point_checks` and
