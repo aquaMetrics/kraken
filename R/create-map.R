@@ -1,43 +1,71 @@
-create_map <- function(data, areas, method) {
+create_map <- function(data, areas, method, breachPositionEnsemble) {
   # Convert survey data to spatial
-  test <- sf::st_as_sf(data$survey_data,
+  test <- sf::st_as_sf(
+    data$survey_data,
     coords = c("Longitude", "Latitude"),
     crs = 4326
   )
+
+  breach_position <- breachPositionEnsemble$object[[1]]
+  breach_position <- select(
+    breach_position,
+    breachLongitude_95thPercentile,
+    breachLatitude_95thPercentile
+  )
+
+  breach_position <- distinct(breach_position)
+
+  breach_position_pts <- sf::st_as_sf(
+    breach_position,
+    coords = c(
+      "breachLongitude_95thPercentile",
+      "breachLatitude_95thPercentile"
+    ),
+    crs = 4326
+  )
+
   # Calculate area without overrides
   ellipse <- areas$ellipse
   polygon <- areas$polygon
   if (method == "iqi") {
-    my_colors <- data.frame(colour = c(
-      "#809998",
-      "#d8181c",
-      "#fe8c01",
-      "#f5cc0a",
-      "#a5d22d",
-      "#4682b8"
-    ), status = c(
-      "unclassifiable",
-      "Bad",
-      "Poor",
-      "Moderate",
-      "Good",
-      "High"
-    ))
+    my_colors <- data.frame(
+      colour = c(
+        "#809998",
+        "#d8181c",
+        "#fe8c01",
+        "#f5cc0a",
+        "#a5d22d",
+        "#4682b8"
+      ),
+      status = c(
+        "Unclassifiable",
+        "Bad",
+        "Poor",
+        "Moderate",
+        "Good",
+        "High"
+      )
+    )
   } else {
-    my_colors <- data.frame(colour = c(
-      "#809998",
-      "#d8181c",
-      "#a5d22d"
-    ), status = c(
-      "unclassifiable",
-      "Fail",
-      "Pass"
-    ))
+    my_colors <- data.frame(
+      colour = c(
+        "#809998",
+        "#d8181c",
+        "#a5d22d"
+      ),
+      status = c(
+        "Unclassifiable",
+        "Fail",
+        "Pass"
+      )
+    )
   }
 
-  my_colours <- dplyr::filter(my_colors, status %in%
-    unique(test$`WFD status`))
-
+  my_colours <- dplyr::filter(
+    my_colors,
+    status %in%
+      unique(test$`WFD status`)
+  )
 
   test$`WFD status` <- as.factor(test$`WFD status`)
   test$`WFD status` <- forcats::fct_relevel(
@@ -46,15 +74,19 @@ create_map <- function(data, areas, method) {
   )
   blue_theme <- ggplot2::theme(
     panel.background = ggplot2::element_rect(
-      fill = "#BFD5E3", colour = "#6D9EC1",
-      linewidth = 2, linetype = "solid"
+      fill = "#BFD5E3",
+      colour = "#6D9EC1",
+      linewidth = 2,
+      linetype = "solid"
     ),
     panel.grid.major = ggplot2::element_line(
-      linewidth = 0.5, linetype = "solid",
+      linewidth = 0.5,
+      linetype = "solid",
       colour = "white"
     ),
     panel.grid.minor = ggplot2::element_line(
-      linewidth = 0.25, linetype = "solid",
+      linewidth = 0.25,
+      linetype = "solid",
       colour = "white"
     )
   )
@@ -67,6 +99,7 @@ create_map <- function(data, areas, method) {
   g <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = test, ggplot2::aes(color = `WFD status`)) +
     ggplot2::geom_sf(data = ellipse, alpha = 0) +
+    ggplot2::geom_sf(data = breach_position_pts, colour = "black", shape = 4) +
     # geom_sf(data = polygon, alpha = 0, colour = "purple") +
     # geom_sf(data = points, colour = "black") +
     colScale +
