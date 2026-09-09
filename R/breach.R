@@ -198,12 +198,14 @@ breach <- function(data, ellipse_representative = TRUE) {
   data <- list(
     outSurveyData,
     breachCoordinatesOut,
-    breachCoordinatesBestFitOut
+    breachCoordinatesBestFitOut,
+    distance_to_good
   )
   names(data) <- c(
     "surveyData",
     "breachPositionEnsemble",
-    "breachPositionBestFit"
+    "breachPositionBestFit",
+    "distance_to_good"
   )
   return(data)
 }
