@@ -22,6 +22,7 @@ breach <- function(data, ellipse_representative = TRUE) {
   inSurveyData <- data[["data"]]
   geoDf <- data[["geoDf"]]
   geoDfBestFit <- data[["geoDfBestFit"]]
+  distance_to_good <- data[["distance_to_good"]]
   # Convert E/N to Lat/Lon
   set.seed(123)
 
@@ -144,6 +145,14 @@ breach <- function(data, ellipse_representative = TRUE) {
       bearingBestFit,
       breachDistanceBestFit
     ))
+    if (ellipse_representative == TRUE) {
+      breachCoordinatesBestFit <- as.data.frame(geosphere::destPoint(
+        positionBestFit,
+        bearingBestFit,
+        distance_to_good$object[[1]]$`95 percentile distance to Good (m)`
+      ))
+    }
+
     colnames(breachCoordinatesBestFit) <- c("breachLongitude", "breachLatitude")
     breachCoordinatesBestFitOut <- cbind(
       MCFF = geoDfBestFit$MCFF,
