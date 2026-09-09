@@ -26,37 +26,43 @@
 #' probability <- probability_non_linear(demo_iqi)
 #' probability <- override(probability)
 #' }
-override <- function(data,
-                     overrideTransect1 = NA,
-                     overrideTransect2 = NA,
-                     overrideTransect3 = NA,
-                     overrideTransect4 = NA,
-                     overrideBearing1 = NA,
-                     overrideBearing2 = NA,
-                     overrideBearing3 = NA,
-                     overrideBearing4 = NA) {
-
+override <- function(
+  data,
+  overrideTransect1 = NA,
+  overrideTransect2 = NA,
+  overrideTransect3 = NA,
+  overrideTransect4 = NA,
+  overrideBearing1 = NA,
+  overrideBearing2 = NA,
+  overrideBearing3 = NA,
+  overrideBearing4 = NA
+) {
   # Split out the tables from the input `data` list ---------------------------
   inSurveyData <- data[["data"]]
   geoDf <- data[["geoDf"]]
   geoDfBestFit <- data[["geoDfBestFit"]]
   hexdfOut <- data[["hexdfOut"]]
+  distance_to_good <- data[["distance_to_good"]]
 
   # Prepare the input in list to make looping / checking easier ---------------
-  transect_overrides <- data.frame("override" = c(
-    overrideTransect1,
-    overrideTransect2,
-    overrideTransect3,
-    overrideTransect4
-  ))
+  transect_overrides <- data.frame(
+    "override" = c(
+      overrideTransect1,
+      overrideTransect2,
+      overrideTransect3,
+      overrideTransect4
+    )
+  )
   transect_overrides$transect <- 1:nrow(transect_overrides)
   transect_overrides$name <- "distance"
-  bearing_overrides <- data.frame("override" = c(
-    overrideBearing1,
-    overrideBearing2,
-    overrideBearing3,
-    overrideBearing4
-  ))
+  bearing_overrides <- data.frame(
+    "override" = c(
+      overrideBearing1,
+      overrideBearing2,
+      overrideBearing3,
+      overrideBearing4
+    )
+  )
 
   bearing_overrides$transect <- 1:nrow(bearing_overrides)
   bearing_overrides$name <- "bearing"
@@ -108,8 +114,15 @@ override <- function(data,
     inSurveyData,
     geoDf,
     geoDfBestFit,
-    hexdfOut
+    hexdfOut,
+    distance_to_good
   )
-  names(data) <- c("data", "geoDf", "geoDfBestFit", "hexdfOut")
+  names(data) <- c(
+    "data",
+    "geoDf",
+    "geoDfBestFit",
+    "hexdfOut",
+    "distance_to_good"
+  )
   return(data)
 }
