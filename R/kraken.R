@@ -159,7 +159,6 @@ kraken <- function(
       overrides,
       breachs,
       areas,
-      probs$distance_to_good,
       ellipse_representative
     )
 
