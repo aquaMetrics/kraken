@@ -53,7 +53,6 @@ area <- function(data, ellipse_representative = TRUE) {
   ellipseArea <- data.frame(Area = NULL)
   fifthPercentileAreaDynamic <- rep(NA, length(transectCombinations))
   fifthPercentileArea <- 0
-
   if (
     is.null(breachPositionEnsemble) ||
       nrow(breachPositionEnsemble) == 0 ||
@@ -143,22 +142,10 @@ area <- function(data, ellipse_representative = TRUE) {
       (numberOfBreachTransects >= 3) &
         (numberOfBreachTransects == totalNumberOfTransects)
     ) {
-      if (ellipse_representative == TRUE) {
-        breachPositions_bestFit <- (as.matrix(cbind(
-          Longitude = unique(
-            breachPositionEnsemble$breachLongitude_95thPercentile
-          ),
-          Latitude = unique(
-            breachPositionEnsemble$breachLatitude_95thPercentile
-          )
-        )))
-      }
-      if (ellipse_representative == FALSE) {
-        breachPositions_bestFit <- (as.matrix(cbind(
-          Longitude = breachPositionBestFit$breachLongitude,
-          Latitude = breachPositionBestFit$breachLatitude
-        )))
-      }
+      breachPositions_bestFit <- (as.matrix(cbind(
+        Longitude = breachPositionBestFit$breachLongitude,
+        Latitude = breachPositionBestFit$breachLatitude
+      )))
       ellipseResult <- "Actual ellipse"
     } else {
       breachPositions_bestFit <- (as.matrix(cbind(

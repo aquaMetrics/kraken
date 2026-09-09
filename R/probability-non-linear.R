@@ -826,7 +826,6 @@ probability_non_linear <- function(
         numberConverged <- sum(convergedCount)
         xy <- xy + 1
       }
-
       convergedPercent <- round(
         100 *
           sum(convergedCount) /
@@ -834,7 +833,6 @@ probability_non_linear <- function(
         1
       )
       bootDRCmods <- ypred_mLBoot[-which(sapply(ypred_mLBoot, is.null))]
-
       # Calculate distance to Good distribution
       if (method == "iqi") {
         D2Gfunc <- function(x) {
