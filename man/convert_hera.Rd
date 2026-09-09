@@ -4,7 +4,15 @@
 \alias{convert_hera}
 \title{Convert to hera}
 \usage{
-convert_hera(method, data, overrides, breachs, areas)
+convert_hera(
+  method,
+  data,
+  overrides,
+  breachs,
+  areas,
+  distance_to_good,
+  ellipse_representative
+)
 }
 \arguments{
 \item{method}{Type of method used to analyse samples either 'iqi' or
@@ -17,6 +25,16 @@ convert_hera(method, data, overrides, breachs, areas)
 \item{breachs}{dataframe returned from  `breach()`}
 
 \item{areas}{dataframe returned from `area()`}
+
+\item{distance_to_good}{Table of distance to good (m) for each transect
+`probability_non_linear()`}
+
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95
+percentile of resamples on each passing status on each transect (TRUE)
+rather than 95 percentile of areas predicted ellipse area resamples
+(FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+exactly the area in m2.}
 }
 \value{
 dataframe in 'hera' format

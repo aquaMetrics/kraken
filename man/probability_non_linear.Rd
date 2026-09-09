@@ -9,7 +9,8 @@ probability_non_linear(
   loess = FALSE,
   pass_fail = 0.64,
   method = "iqi",
-  n_try = 1000
+  n_try = 1000,
+  ellipse_representative = TRUE
 )
 }
 \arguments{
@@ -27,6 +28,13 @@ function. See examples.}
 model is fitted to a maximum 50 percent of attempts otherwise the model is not
 included. By default, n_try = 1000 and therefore 500 bootstraps are
 returned if model is successfully fitted.}
+
+\item{ellipse_representative}{Calculate the ellipse based on distance to 95
+percentile of resamples on each passing status on each transect (TRUE)
+rather than 95 percentile of areas predicted ellipse area resamples
+(FALSE). Setting this to TRUE provides an ellipse polygon that reflects the
+95% area m2 exactly. Otherwise, the ellipse polygon does not represent
+exactly the area in m2.}
 }
 \value{
 list containing four named data frames: data, geoDf, geoDfBestFit and
@@ -37,6 +45,7 @@ list containing four named data frames: data, geoDf, geoDfBestFit and
  \item{geoDfBestFit}{Best fit prediction at 95 percent confidence level for
  distance to passing status based on fitting the model a single time}
  \item{hexdfOut.}{hexagon heat map of resample predictions}
+ \item{distance_to_good}{Table of distance to good (m) for each transect}
  }
 }
 \description{
