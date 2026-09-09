@@ -135,7 +135,8 @@ kraken <- function(
       loess = loess,
       pass_fail = pass_fail,
       method = method,
-      n_try = n_try
+      n_try = n_try,
+      ellipse_representative = ellipse_representative
     )
 
     overrides <- override(
@@ -152,7 +153,15 @@ kraken <- function(
     breachs <- breach(overrides, ellipse_representative)
     areas <- area(breachs, ellipse_representative)
     # Pivot output into long format --------------------------------------------
-    output <- convert_hera(method, data, overrides, breachs, areas)
+    output <- convert_hera(
+      method,
+      data,
+      overrides,
+      breachs,
+      areas,
+      probs$distance_to_good,
+      ellipse_representative
+    )
 
     return(output)
   })
