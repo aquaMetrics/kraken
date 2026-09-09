@@ -69,7 +69,7 @@ test_that("test kraken works", {
     use_mean_bearing = FALSE
   )
   median_distance <- all_pen_edge_missing2$object[
-    all_pen_edge_missing2$question == "Median distance to Good (m)"
+    all_pen_edge_missing2$question == "Distance to Good (m)"
   ]
   testthat::expect_true(median_distance[[1]][1, 2] == 209)
   all_pen_edge_missing2$object[all_pen_edge_missing2$question == "map"]
@@ -87,7 +87,7 @@ test_that("test kraken works", {
     use_mean_bearing = FALSE
   )
   median_distance <- all_pen_edge_missing$object[
-    all_pen_edge_missing$question == "Median distance to Good (m)"
+    all_pen_edge_missing$question == "Distance to Good (m)"
   ]
   testthat::expect_true(median_distance[[1]][1, 2] == 191)
 
@@ -138,8 +138,26 @@ test_that("test kraken works", {
     ellipse_representative = FALSE,
     use_mean_bearing = FALSE
   )
-
   # If less than 7 stations is a model fitted? No.
+
+  # Test if two consecutive stations fails if NA value in station between them?
+  demo_iqi <- kraken::demo_iqi
+  demo_iqi$IQI[1] <- 0.5
+  demo_iqi$IQI[2] <- 0.64
+  demo_iqi$IQI[3] <- NA
+  demo_iqi$IQI[4] <- 0.64
+  demo_iqi$IQI[5] <- 0.64
+  demo_iqi$IQI[c(6:9)] <- NA
+  only_faling_pen_edge <- kraken(
+    demo_iqi,
+    n_try = 10,
+    ellipse_representative = FALSE,
+    use_mean_bearing = FALSE
+  )
+  model <- only_faling_pen_edge$object[
+    only_faling_pen_edge$question == "model_info"
+  ][[1]]
+  testthat::expect_equal(model$reducedSamplingD2G[1], "60.8483289180838")
 })
 
 
@@ -180,8 +198,10 @@ test_that("test kraken works for chemistry data", {
     test_data,
     pass_fail = 768,
     method = "residue",
-    loess = TRUE,
-    ellipse_representative = FALSE,
-    use_mean_bearing = FALSE
+    loess = TRUE
   )
+  area <- test_chem$response[
+    test_chem$question == "area_95_confidence"
+  ]
+  testthat::expect_equal(area, "39782.2541276436")
 })
