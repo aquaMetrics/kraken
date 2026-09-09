@@ -8,27 +8,28 @@ test_that("probability_non_linear function matches outputs from Spotfire script"
   hex <- data[["hexdfOut"]]
   # test data is from Spotfire / R script
   distance_to_good_test <- read.csv(
-    system.file("extdat",
+    system.file(
+      "extdat",
       "test-data/2021-05-26-bellister/distance-to-good-regression.csv",
       package = "kraken"
     )
   )
 
   hex_test <- read.csv(
-    system.file("extdat",
+    system.file(
+      "extdat",
       "test-data/2021-05-26-bellister/hex.csv",
       package = "kraken"
     )
   )
 
   best_fit_test <- read.csv(
-    system.file("extdat",
+    system.file(
+      "extdat",
       "test-data/2021-05-26-bellister/best-fit.csv",
       package = "kraken"
     )
   )
-
-
 
   # Update data types for distance_to_good due to writing/reading to .csv files
   row.names(distance_to_good_test) <- NULL
@@ -45,6 +46,7 @@ test_that("probability_non_linear function matches outputs from Spotfire script"
   distance_to_good$D2Ghist <- as.numeric(distance_to_good$D2Ghist)
   distance_to_good$Bearing <- NULL
   distance_to_good_test$Bearing <- NULL
+  distance_to_good <- as.data.frame(distance_to_good)
   expect_equal(distance_to_good, distance_to_good_test)
 
   # Update data types for best_fit due to writing/reading to .csv files
@@ -63,7 +65,9 @@ test_that("probability_non_linear function matches outputs from Spotfire script"
   expect_equal(best_fit, best_fit_test)
 
   # Update data types for hex due to writing/reading to .csv files
-  skip("Possibly failing due to lat/long columns removed at start when originally these were used instead of easting and northing.")
+  skip(
+    "Possibly failing due to lat/long columns removed at start when originally these were used instead of easting and northing."
+  )
   row.names(hex) <- NULL
   row.names(hex_test) <- NULL
   hex_test$X <- NULL
