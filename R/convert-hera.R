@@ -9,9 +9,16 @@
 #' @param overrides dataframe returned from  `override()`
 #' @param breachs dataframe returned from  `breach()`
 #' @param areas dataframe returned from `area()`
-#'
+#' @inheritParams kraken
 #' @return dataframe in 'hera' format
-convert_hera <- function(method, data, overrides, breachs, areas) {
+convert_hera <- function(
+  method,
+  data,
+  overrides,
+  breachs,
+  areas,
+  ellipse_representative
+) {
   breach <- tidyr::pivot_longer(
     breachs$breachPositionBestFit,
     cols = c(
@@ -76,7 +83,9 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     data = data,
     areas = areas,
     method = method,
-    breachPositionEnsemble = breachPositionEnsemble
+    breachPositionEnsemble = breachPositionEnsemble,
+    breachs = breachs,
+    ellipse_representative
   )
   map <- tibble::tibble(
     "question" = "map",
@@ -111,22 +120,6 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     "object" = list(overrides$hexdfOut)
   )
 
-  distance_to_good <- dplyr::group_by(overrides$geoDf, Transect)
-  distance_to_good <- dplyr::summarise(
-    distance_to_good,
-    "Median distance to Good (m)" = as.integer(
-      round(
-        median(
-          as.numeric(`D2Ghist`)
-        )
-      )
-    )
-  )
-  distance_to_good <- tibble::tibble(
-    "question" = "Median distance to Good (m)",
-    "response" = NA,
-    "object" = list(distance_to_good)
-  )
   if (!all(names(area) %in% c("warnings"))) {
     warnings <- tibble::tibble(
       "question" = "ellipse_warnings",
@@ -152,8 +145,7 @@ convert_hera <- function(method, data, overrides, breachs, areas) {
     probs,
     warnings,
     context_warning,
-    geo_df,
-    distance_to_good
+    geo_df
   )
 
   output$Survey_date <- as.Date(output$Survey_date)
