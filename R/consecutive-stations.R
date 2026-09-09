@@ -177,6 +177,7 @@ consecutive_stations <- function(
       } else {
         mean <- c(innerTransect$Longitude[2], innerTransect$Latitude[2])
       }
+
       mean_bearing <- geosphere::bearing(
         p1 = c(innerTransect$Longitude[1], innerTransect$Latitude[1]),
         p2 = c(mean[1], mean[2]),
@@ -322,11 +323,11 @@ consecutive_stations <- function(
 
   # Calculate class ----------------------------------------------------------
   if (method == "residue") {
-    testOutput$`WFD status` <- "unclassifiable"
+    testOutput$`WFD status` <- "Unclassifiable"
     testOutput$`WFD status`[testOutput$IQI < pass_fail] <- "Pass"
     testOutput$`WFD status`[testOutput$IQI >= pass_fail] <- "Fail"
   } else {
-    testOutput$`WFD status` <- "unclassifiable"
+    testOutput$`WFD status` <- "Unclassifiable"
     testOutput$`WFD status`[testOutput$IQI >= 0.75] <- "High"
     testOutput$`WFD status`[testOutput$IQI < 0.75] <- "Good"
     testOutput$`WFD status`[testOutput$IQI < pass_fail] <- "Moderate"
@@ -354,10 +355,6 @@ consecutive_stations <- function(
     mean_bearing,
     quickBearing
   )
-  # Remove all IQI that are missing/NA except if at pen edge (station 1) because
-  # required for modelled distance calculation.
-  testOutput <- dplyr::filter(testOutput, !is.na(IQI) | Station == 1)
-
   data <- list(summaryOutput, testOutput)
   names(data) <- c("sample_point_checks", "survey_data")
   return(data)
