@@ -92,6 +92,12 @@ convert_hera <- function(
     "response" = "object",
     "object" = list(map)
   )
+  distance_to_good <- breachs[["distance_to_good"]]
+  distance_to_good <- tibble::tibble(
+    "question" = "Distance to Good (m)",
+    "response" = "object",
+    "object" = list(distance_to_good$object[[1]])
+  )
 
   context_warnings <- breachs$surveyData
   context_warning <-
@@ -145,7 +151,8 @@ convert_hera <- function(
     probs,
     warnings,
     context_warning,
-    geo_df
+    geo_df,
+    distance_to_good
   )
 
   output$Survey_date <- as.Date(output$Survey_date)
