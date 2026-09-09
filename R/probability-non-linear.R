@@ -17,6 +17,7 @@
 #'   model is fitted to a maximum 50 percent of attempts otherwise the model is not
 #'   included. By default, n_try = 1000 and therefore 500 bootstraps are
 #'   returned if model is successfully fitted.
+#' @inheritParams kraken
 #' @return list containing four named data frames: data, geoDf, geoDfBestFit and
 #'   hexdfOut.
 #' \describe{
@@ -25,6 +26,7 @@
 #'  \item{geoDfBestFit}{Best fit prediction at 95 percent confidence level for
 #'  distance to passing status based on fitting the model a single time}
 #'  \item{hexdfOut.}{hexagon heat map of resample predictions}
+#'  \item{distance_to_good}{Table of distance to good (m) for each transect}
 #'  }
 #' @export
 #' @importFrom stats AIC predict
@@ -41,7 +43,8 @@ probability_non_linear <- function(
   loess = FALSE,
   pass_fail = 0.64,
   method = "iqi",
-  n_try = 1000
+  n_try = 1000,
+  ellipse_representative = TRUE
 ) {
   # This version incorporates the following changes:
   #   1 Removing L.3 as a possible model fit
@@ -723,16 +726,9 @@ probability_non_linear <- function(
         data2 <- fittedModel$origData # Original data
         fitted1 <- fittedModel$predres[, 1] # Model predicted IQI values
         resid1 <- fittedModel$predres[, 2] # Residuals
-        if (is.na(data2$IQI[1])) {
-          iqi_fitted <- c(
-            NA,
-            fitted1 + sample(scale(resid1, scale = FALSE), replace = TRUE)
-          ) # Change column
-        } else {
-          iqi_fitted <- fitted1 +
-            sample(scale(resid1, scale = FALSE), replace = TRUE) # Change column
-        }
-        data2$IQI <- iqi_fitted
+        iqi_fitted <- fitted1 +
+          sample(scale(resid1, scale = FALSE), replace = TRUE) # Change column
+        data2$IQI[!is.na(data2$IQI)] <- iqi_fitted
         return(data2[,])
       }
       if (loess == TRUE) {
@@ -741,16 +737,9 @@ probability_non_linear <- function(
           data2 <- innerTransect # Original data
           fitted1 <- fittedModel$fitted # Model predicted IQI values
           resid1 <- fittedModel$residuals # Residuals
-          if (is.na(data2$IQI[1])) {
-            iqi_fitted <- c(
-              NA,
-              fitted1 + sample(scale(resid1, scale = FALSE), replace = TRUE)
-            ) # Change column
-          } else {
-            iqi_fitted <- fitted1 +
-              sample(scale(resid1, scale = FALSE), replace = TRUE) # Change column
-          }
-          data2$IQI <- iqi_fitted
+          iqi_fitted <- fitted1 +
+            sample(scale(resid1, scale = FALSE), replace = TRUE) # Change column
+          data2$IQI[!is.na(data2$IQI)] <- iqi_fitted
           return(data2[,])
         }
       }
@@ -1115,7 +1104,7 @@ probability_non_linear <- function(
     # last station in transect is good?
     last_station <- data %>%
       group_by(Transect) %>%
-      dplyr::arrange(Transect, desc(Station)) %>%
+      dplyr::arrange(Transect, dplyr::desc(Station)) %>%
       dplyr::summarise(
         last_transect = dplyr::first(`WFD status`),
         last_station = dplyr::first(`Station`)
@@ -1155,14 +1144,50 @@ probability_non_linear <- function(
     D2Gdistr$D2Ghist[is.na(D2Gdistr$D2Ghist)] <-
       D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2Ghist)]
   }
-
+  # Table with distance to good (two consecutive or modelled) ----------
+  D2Gdistr <- dplyr::group_by(D2Gdistr, Transect)
+  distance_to_good <- dplyr::summarise(
+    D2Gdistr,
+    "Median distance to Good (m)" = as.integer(
+      round(
+        median(
+          as.numeric(`D2Ghist`)
+        )
+      )
+    )
+  )
+  if (ellipse_representative == TRUE) {
+    distance_to_good <- dplyr::summarise(
+      D2Gdistr,
+      "95 percentile distance to Good (m)" = as.integer(
+        round(
+          stats::quantile(
+            as.numeric(`D2Ghist`),
+            probs = c(.05)
+          )
+        )
+      )
+    )
+  }
+  distance_to_good <- tibble::tibble(
+    "question" = "Distance to Good (m)",
+    "response" = NA,
+    "object" = list(distance_to_good)
+  )
   # Put outputs into list
   data <- list(
     summaryOutput,
     D2Gdistr,
     D2GbestFitResults,
-    hexdfOut
+    hexdfOut,
+    distance_to_good
   )
-  names(data) <- c("data", "geoDf", "geoDfBestFit", "hexdfOut")
+  names(data) <- c(
+    "data",
+    "geoDf",
+    "geoDfBestFit",
+    "hexdfOut",
+    "distance_to_good"
+  )
   return(data)
 }
