@@ -96,8 +96,7 @@ map[[1]]
 ## Breach distances
 
 ```{r}
-distance_to_good <- output$object[output$question == "Distance to Good (m)"][[1]]
-knitr::kable(distance_to_good)
+knitr::kable(output$object[output$question == "Distance to Good (m)"])
 
 ```
 
