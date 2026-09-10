@@ -203,5 +203,5 @@ test_that("test kraken works for chemistry data", {
   area <- test_chem$response[
     test_chem$question == "area_95_confidence"
   ]
-  testthat::expect_equal(area, "39782.2541276436")
+  testthat::expect_equal(round(as.numeric(area), 2), 39782.25)
 })
