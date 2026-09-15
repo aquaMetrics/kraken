@@ -904,6 +904,7 @@ probability_non_linear <- function(
       hexdf <- rbind(hexdf, surveyData)
       message(i)
       # Create outputs
+
       if (
         (convergedPercent >= convergenceCriterion) &
           (dontAchieveGoodPercent <= PercDontReachGoodCriterion)
@@ -1049,6 +1050,7 @@ probability_non_linear <- function(
             innerTransect$Northing[
               innerTransect$Distance == reducedSamplingD2G
             ][1]
+
           D2Gdistr <- rbind(
             D2Gdistr,
             data.frame(cbind(
@@ -1112,23 +1114,23 @@ probability_non_linear <- function(
 
     D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
 
-    last_station <- last_station %>%
-      dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
-    if (
-      all(last_station$last_transect %in% c("Good", "High", "Pass")) &
-        all(last_station$last_station > 6)
-    ) {
-      summaryOutput$type <-
-        paste0(
-          "Area based on transect ",
-          paste0((last_station$Transect), collapse = " & "),
-          " attaining compliance standard at last station"
-        )
-      summaryOutput$sign <- NA
-    } else {
-      summaryOutput$type <- "Minimal footprint area"
-      summaryOutput$sign <- ">"
-    }
+    # last_station <- last_station %>%
+    #   dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
+    # if (
+    #   all(last_station$last_transect %in% c("Good", "High", "Pass")) &
+    #     all(last_station$last_station > 6)
+    # ) {
+    #   summaryOutput$type <-
+    #     paste0(
+    #       "Area based on transect ",
+    #       paste0((last_station$Transect), collapse = " & "),
+    #       " attaining compliance standard at last station"
+    #     )
+    #   summaryOutput$sign <- NA
+    # } else {
+    summaryOutput$type <- "Minimal footprint area"
+    summaryOutput$sign <- ">"
+    # }
 
     mini_dist_good <- data %>%
       group_by(Transect) %>%
