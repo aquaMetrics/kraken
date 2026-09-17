@@ -109,6 +109,17 @@ override <- function(
     }
   )
 
+  # Overrride distance to good table ------------------------------------------
+  distance_to_good_object <- distance_to_good$object[[1]]
+  if (any(!is.na(transect_overrides$override))) {
+    distance_to_good_object[
+      !is.na(transect_overrides$override),
+      2
+    ] <- transect_overrides$override[
+      !is.na(transect_overrides$override)
+    ]
+  }
+  distance_to_good$object[[1]] <- distance_to_good_object
   # Return values -------------------------------------------------------------
   data <- list(
     inSurveyData,
