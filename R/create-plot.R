@@ -1,6 +1,6 @@
 create_plot <- function(data, method, pass_fail) {
   # Pivot output ------------------------------------------
-  plots_data <- output %>%
+  plots_data <- data %>%
     dplyr::filter(question %in% c("Distance", "IQI", "MCFF_Transect"))
   plots_data <- distinct(plots_data)
   distance_to_good <- data$object[data$question == "Distance to Good (m)"][[1]]
@@ -47,7 +47,7 @@ create_plot <- function(data, method, pass_fail) {
   }
   # Hexagon heatmap --------------
   # representation of all the fitted model outputs
-  hex_df <- bind_rows(output$object[output$question == "hex_df"])
+  hex_df <- bind_rows(data$object[data$question == "hex_df"])
   hex_df$Distance <- as.numeric(hex_df$Distance)
   hex_df$IQI <- as.numeric(hex_df$IQI)
   hex_df$Transect <- as.numeric(hex_df$Transect)
@@ -65,7 +65,7 @@ create_plot <- function(data, method, pass_fail) {
 
   # Plot ----------
   p <- list()
-
+  model <- data$object[data$question == "model_info"][[1]]
   for (i in 1:nrow(model)) {
     model_plot <- model[model$Transect == i, ]
     plot_data <- plots_data[
