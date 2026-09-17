@@ -146,15 +146,14 @@ breach <- function(data, ellipse_representative = TRUE) {
       breachDistanceBestFit
     ))
 
-    if (ellipse_representative == TRUE) {
-      # If reduced analysis use easting/northing of first consecutive station and
-      # set distance to zero
-      distance_to_good_formatted <- distance_to_good$object[[
-        1
-      ]]$`95 percentile distance to Good (m)`
-      distance_to_good_formatted[which(breachDistanceBestFit == 0)] <- 0
-      # If insufficient data to use any method snap to last station
+    # If reduced analysis use easting/northing of first consecutive station and
+    # set distance to zero
+    distance_to_good_formatted <- as.numeric(unlist(distance_to_good$object[[
+      1
+    ]][, 2]))
+    distance_to_good_formatted[which(breachDistanceBestFit == 0)] <- 0
 
+    if (ellipse_representative == TRUE) {
       breachCoordinatesBestFit <- as.data.frame(geosphere::destPoint(
         positionBestFit,
         bearingBestFit,
