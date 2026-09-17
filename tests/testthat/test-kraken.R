@@ -160,6 +160,29 @@ test_that("test kraken works", {
   testthat::expect_equal(model$reducedSamplingD2G[1], "60.8483289180838")
 })
 
+test_that("test kraken override works", {
+  # check override works for proxy transects
+  demo <- read.csv(
+    system.file("extdat", "test-data/2022-reintraid.csv", package = "kraken"),
+    check.names = FALSE
+  )
+  override_check <- kraken(
+    demo,
+    overrideTransect4 = 200,
+    overrideBearing4 = 300,
+    loess = TRUE,
+    n_try = 20
+  )
+  area <- override_check$response[
+    override_check$question == "area_95_confidence"
+  ]
+  testthat::expect_equal(area, "52694.7553012713")
+  distance_to_good <- override_check$object[
+    override_check$question == "Distance to Good (m)"
+  ][[1]]
+  testthat::expect_equal(as.integer(distance_to_good[4, 2]), 200)
+})
+
 
 test_that("test kraken works for chemistry data", {
   # Create chemistry data with 3 replicates per station
