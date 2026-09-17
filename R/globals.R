@@ -5,6 +5,7 @@ utils::globalVariables(
     "breachLongitude",
     "breachLongitude_50thPercentile",
     "breachLatitude_50thPercentile",
+    "Counts",
     "D2Ghist",
     "Distance",
     "Easting",
