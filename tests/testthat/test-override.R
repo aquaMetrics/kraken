@@ -6,6 +6,20 @@ test_that("override works", {
       package = "kraken"
     )
   )
+  # Add distance to good table (added to package since initial release.)
+
+  distance_to_good <- tibble::tibble(
+    "Transect" = c(1, 2, 3, 4),
+    "Distance" = c(NA, NA, NA, NA)
+  )
+
+  distance_to_good_tibble <- tibble::tibble(
+    "question" = "Distance to Good (m)",
+    "response" = NA,
+    "object" = list(distance_to_good)
+  )
+
+  probability$distance_to_good <- distance_to_good_tibble
 
   override_test <- override(probability)
   breachs <- breach(override_test, ellipse_representative = FALSE)
