@@ -1114,8 +1114,8 @@ probability_non_linear <- function(
 
     D2GbestFitResults <- dplyr::arrange(D2GbestFitResults, Transect)
 
-    # last_station <- last_station %>%
-    #   dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
+    last_station <- last_station %>%
+      dplyr::filter(Transect %in% c(which(is.na(D2GbestFitResults$D2G))))
     # if (
     #   all(last_station$last_transect %in% c("Good", "High", "Pass")) &
     #     all(last_station$last_station > 6)
@@ -1130,17 +1130,37 @@ probability_non_linear <- function(
     # } else {
     summaryOutput$type <- "Minimal footprint area"
     summaryOutput$sign <- ">"
-    # }
+    #}
 
-    mini_dist_good <- data %>%
+    mini_dist_good_distance <- data %>%
       group_by(Transect) %>%
       dplyr::summarise(mini_dist_good = max(Distance))
 
-    D2GbestFitResults$D2G[is.na(D2GbestFitResults$D2G)] <-
-      mini_dist_good$mini_dist_good[which(is.na(D2GbestFitResults$D2G))]
+    mini_dist_good <- data %>%
+      group_by(Transect) %>%
+      dplyr::slice(which.max(Distance))
 
-    mini_dist_good$Transect <- as.character(mini_dist_good$Transect)
-    D2Gdistr <- dplyr::inner_join(D2Gdistr, mini_dist_good, by = "Transect")
+    # Minimal area/ Last station use easting/northing from last station
+    D2GbestFitResults$Easting[is.na(D2GbestFitResults$D2G)] <-
+      mini_dist_good$Easting[which(is.na(D2GbestFitResults$D2G))]
+
+    D2GbestFitResults$Northing[is.na(D2GbestFitResults$D2G)] <-
+      mini_dist_good$Northing[which(is.na(D2GbestFitResults$D2G))]
+
+    # Set bearing to zero - as Easting/Northing of breach set to last station
+    D2GbestFitResults$Bearingf[is.na(D2GbestFitResults$D2G)] <- 0
+    # Minimal area/ Last station set distance zero
+    D2GbestFitResults$D2G[is.na(D2GbestFitResults$D2G)] <- 0
+
+    # Set 'modelled' to last station for minimal area
+    mini_dist_good_distance$Transect <- as.character(
+      mini_dist_good_distance$Transect
+    )
+    D2Gdistr <- dplyr::inner_join(
+      D2Gdistr,
+      mini_dist_good_distance,
+      by = "Transect"
+    )
     D2Gdistr$D2G[is.na(D2Gdistr$D2G)] <-
       D2Gdistr$mini_dist_good[is.na(D2Gdistr$D2G)]
     D2Gdistr$D2Ghist[is.na(D2Gdistr$D2Ghist)] <-
