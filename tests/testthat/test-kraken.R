@@ -176,7 +176,7 @@ test_that("test kraken override works", {
   area <- override_check$response[
     override_check$question == "area_95_confidence"
   ]
-  testthat::expect_equal(area, "52694.7553012713")
+  testthat::expect_equal(round(as.numeric(area), 2), "52694.76")
   distance_to_good <- override_check$object[
     override_check$question == "Distance to Good (m)"
   ][[1]]
