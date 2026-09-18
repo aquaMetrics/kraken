@@ -108,9 +108,10 @@ override <- function(
       return(transect)
     }
   )
-
   # Overrride distance to good table ------------------------------------------
   distance_to_good_object <- distance_to_good$object[[1]]
+  # convert from integer to numeric as override could be numeric
+  distance_to_good_object[[2]] <- as.numeric(distance_to_good_object[[2]])
   if (any(!is.na(transect_overrides$override))) {
     distance_to_good_object[
       !is.na(transect_overrides$override),
