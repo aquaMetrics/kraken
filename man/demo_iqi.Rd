@@ -20,6 +20,6 @@ A data frame with 30 rows and 7 variables.
 demo_iqi
 }
 \description{
-Demo IQI and Survey Data
+Mocked data for illustrative purposes
 }
 \keyword{datasets}

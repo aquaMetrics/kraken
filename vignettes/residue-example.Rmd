@@ -10,6 +10,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
+devtools::install_github("aquaMetrics/kraken")
 library(kraken)
 library(dplyr)
 library(tidyr)
@@ -26,8 +27,8 @@ knitr::opts_chunk$set(message = FALSE)
 Export data from fish farm database as .csv file. Save locally and use the 'Import Dataset' tool in the Environment pane to import data or use `read.csv()` function and paste in file path - but replace  '\' with '/' in the path.
 
 ```{r data}
-# data <- read.csv("C:/Users/Tim.Foster/OneDrive - Scottish Environment Protection Agency/DNA Data/Readiness Data/ellipse-area/5279-residue.csv")
-
+# data <- read.csv("5279-residue.csv")
+# 
 data <- read.csv(system.file("extdat", "test-data/residue-test-data.csv",
   package = "kraken"
 ), check.names = TRUE)
@@ -80,6 +81,7 @@ Run data through calculations.
 
 ```{r run-kraken, include=FALSE}
 output <- kraken::kraken(data = data,
+                         overrideTransect1 = 50,
                          pass_fail = pass_fail,
                          method = "residue"
 )
@@ -135,10 +137,11 @@ Display plots for each transect.
 kraken:::create_plot(output, method = "residue", pass_fail = pass_fail)
 ```
 
+## Area
 
-```{r, eval=FALSE}
+```{r}
 
-round(as.numeric(output$response[output$question == "area_95_confidence"],2))
+(100 / 177068) *   round(as.numeric(output$response[output$question == "area_95_confidence"],2))
 
 
 ```
