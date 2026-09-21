@@ -213,8 +213,8 @@ probability_non_linear <- function(
       ))),
       silent = TRUE
     )
-    sink(type = "message")
-    close(zz)
+    # sink(type = "message")
+    # close(zz)
     # Calculate Easting and Northing for re-use later
     easting_min <- unique(
       innerTransect$Easting[
@@ -670,6 +670,8 @@ probability_non_linear <- function(
           otrace = FALSE
         )
       )))
+      sink(type = "message")
+      close(zz)
       residsOut <- data.frame(mL4$predres)
 
       # Collate info on best fit
