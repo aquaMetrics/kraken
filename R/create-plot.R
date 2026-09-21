@@ -137,7 +137,7 @@ create_plot <- function(data, method, pass_fail) {
           paste0("Site: ", unique(plot_data$project_id)),
           subtitle = paste0(
             unique(plot_data$MCFF_Transect),
-            " Model fit not of sufficient quality to use"
+            " Model fit not returned"
           )
         ) +
         ggplot2::geom_hline(
