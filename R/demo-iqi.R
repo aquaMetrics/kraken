@@ -1,5 +1,7 @@
 #' Demo IQI and Survey Data
 #'
+#' Mocked data for illustrative purposes
+#'
 #' @format A data frame with 30 rows and 7 variables.
 #' \describe{
 #' \item{Survey_date}{Survey_date character string}
