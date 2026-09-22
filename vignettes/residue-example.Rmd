@@ -10,7 +10,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-devtools::install_github("aquaMetrics/kraken")
+# devtools::install_github("aquaMetrics/kraken")
 library(kraken)
 library(dplyr)
 library(tidyr)
