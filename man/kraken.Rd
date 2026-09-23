@@ -133,6 +133,6 @@ consecutive good status (or high status) station is used.
 }
 \examples{
 \dontrun{
-probability <- kraken(demo_iqi, loess = TRUE)
+output <- kraken(demo_iqi)
 }
 }

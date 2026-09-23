@@ -94,7 +94,7 @@
 #' @importFrom tidyr pivot_wider
 #' @examples
 #' \dontrun{
-#' probability <- kraken(demo_iqi, loess = TRUE)
+#' output <- kraken(demo_iqi)
 #' }
 kraken <- function(
   data,

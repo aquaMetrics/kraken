@@ -161,7 +161,6 @@ test_that("test kraken works", {
 })
 
 test_that("test kraken override works", {
-  # check override works for proxy transects
   demo <- read.csv(
     system.file("extdat", "test-data/2022-reintraid.csv", package = "kraken"),
     check.names = FALSE
@@ -181,6 +180,35 @@ test_that("test kraken override works", {
     override_check$question == "Distance to Good (m)"
   ][[1]]
   testthat::expect_equal(as.integer(distance_to_good[4, 2]), 200)
+})
+
+test_that("test kraken override works when creating proxy transect", {
+  # check override works for proxy transects
+  demo <- read.csv(
+    system.file("extdat", "test-data/2022-reintraid.csv", package = "kraken"),
+    check.names = FALSE
+  )
+
+  # Create a transect with single pen edge station
+  demo <- demo[c(1:4, 7:28), ]
+  demo$IQI[1] <- 0.34
+
+  override_check <- kraken(
+    demo,
+    overrideTransect1 = 157.55661,
+    #  overrideBearing1 = 30,
+    loess = TRUE,
+    n_try = 20
+  )
+
+  area <- override_check$response[
+    override_check$question == "area_95_confidence"
+  ]
+
+  override_check$response[override_check$question == "area_warning"]
+
+  map <- override_check$object[override_check$question == "map"][[1]]
+  map
 })
 
 

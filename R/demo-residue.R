@@ -1,8 +1,8 @@
-#' Demo IQI and Survey Data
+#' Demo residue data
 #'
 #' Mocked data for illustrative purposes
 #'
-#' @format A data frame with 30 rows and 7 variables.
+#' @format A data frame with 84 rows and 7 variables.
 #' \describe{
 #' \item{Survey_date}{Survey_date character string}
 #' \item{MCFF}{MCFF Site name - character string}
@@ -12,4 +12,4 @@
 #' \item{Northing}{Northing coordinate}
 #' \item{IQI}{IQI ratio - Environmental Quality Ratio EQR}
 #' }
-"demo_iqi"
+"demo_residue"
