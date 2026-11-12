@@ -157,7 +157,11 @@ test_that("test kraken works", {
   model <- only_faling_pen_edge$object[
     only_faling_pen_edge$question == "model_info"
   ][[1]]
-  testthat::expect_equal(model$reducedSamplingD2G[1], "60.8483289180838")
+  # round output for compatibility in deciml places in mac, linux, windows
+  testthat::expect_equal(
+    round(as.numeric(model$reducedSamplingD2G[1]), 5),
+    60.84833
+  )
 })
 
 test_that("test kraken override works", {
